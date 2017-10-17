@@ -1,0 +1,12 @@
+*.tmp
+*.log
+*.class
+*.war
+*.pdf
+target/*
+.classpath
+.project
+.settings
+.DS_Store
+/target/
+/bin/
