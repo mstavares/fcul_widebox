@@ -1,5 +1,7 @@
 package common;
 
-public class Theater {
+import java.io.Serializable;
+
+public class Theater implements Serializable{
 
 }

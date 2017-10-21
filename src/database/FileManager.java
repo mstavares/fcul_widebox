@@ -10,17 +10,20 @@ public class FileManager {
 	
 	
 	public Map<Integer,Boolean[][]> restoreDatabaseFromFile(){
-		
+		//TODO
+		return null;
 	}
 	
 	
 	public Map<Integer,Boolean[][]> updateDatabaseFromLog(Map<Integer,Boolean[][]> database){
-		
+		//TODO
+		return null;
 	}
 	
 	
 	public boolean writeDatabaseToFile(Map<Integer,Boolean[][]> database){
-		
+		//TODO
+		return false;
 	}
 	
 	
@@ -31,7 +34,8 @@ public class FileManager {
 	 * @return True if the operation was added to the log
 	 */
 	public boolean log(int opcode, int clientId){
-		
+		//TODO
+		return false;
 	}
 	
 }

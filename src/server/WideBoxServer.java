@@ -1,53 +1,24 @@
 package server;
 
+import java.rmi.Remote;
 import java.util.Map;
 
 import common.Theater;
 
+public interface WideBoxServer extends Remote{
 
-public class WideBoxServer {
-	
-	private boolean online;
-	
-	public Map<Integer,String> getTheaters(){
-		
-	}
-	
-	
-	public Theater getTheaterInfo(int theaterId){
-		
-	}
-	
-	public boolean reserveSeat(int clientId, int row, int column){
-		
-	}
-	
-	
-	public boolean acceptReservedSeat(int clientId){
-		
-	}
-	
-	
-	public cancelReservation(int clientId){
-		
-	}
-	
-	
-	public boolean stopServer(){
-		if (!online)
-			return false;
-		
-		online = false;
-		return true;
-	}
-	
-	
-	public boolean startServer(){
-		if (online)
-			return false;
-		
-		online = true;
-		return true;
-	}
-	
+	Map<Integer, String> getTheaters();
+
+	Theater getTheaterInfo(int theaterId);
+
+	boolean reserveSeat(int clientId, int row, int column);
+
+	boolean acceptReservedSeat(int clientId);
+
+	boolean cancelReservation(int clientId);
+
+	boolean stopServer();
+
+	boolean startServer();
+
 }
