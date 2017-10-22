@@ -9,6 +9,8 @@ import common.Theater;
 
 public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxDatabase{
 	
+	private static final long serialVersionUID = -3423585153833379299L;
+	
 	//opcodes to use when writing to the log
 	private final static int ACCEPT_ACTION = 10;
 	private final static int CANCEL_ACTION = 20;
@@ -30,35 +32,35 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 	
 	
 	@Override
-	public Map<Integer,String> getTeaters(){
+	public Map<Integer,String> getTeaters() throws RemoteException{
 		//TODO
 		return null;
 	}
 	
 	
 	@Override
-	public Theater getTheaterInfo(int theaterId){
+	public Theater getTheaterInfo(int theaterId) throws RemoteException{
 		//TODO
 		return null;
 	}
 	
 	
 	@Override
-	public synchronized boolean reserveSeat(int clientId, int row, int column){
+	public synchronized boolean reserveSeat(int clientId, int row, int column) throws RemoteException{
 		//TODO
 		return false;
 	}
 	
 	
 	@Override
-	public synchronized boolean acceptReservedSeat(int clientId){
+	public synchronized boolean acceptReservedSeat(int clientId) throws RemoteException{
 		//TODO
 		return false;
 	}
 	
 	
 	@Override
-	public synchronized boolean cancelReservation(int clientId){
+	public synchronized boolean cancelReservation(int clientId) throws RemoteException{
 		//TODO
 		return false;
 	}

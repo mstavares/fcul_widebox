@@ -9,6 +9,7 @@ import common.Theater;
 
 public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxServer {
 	
+	private static final long serialVersionUID = 6332295204270798892L;
 	private boolean online;
 	
 	
@@ -19,42 +20,42 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	
 	
 	@Override
-	public Map<Integer,String> getTheaters(){
+	public Map<Integer,String> getTheaters() throws RemoteException{
 		//TODO
 		return null;
 	}
 	
 	
 	@Override
-	public Theater getTheaterInfo(int theaterId){
+	public Theater getTheaterInfo(int theaterId) throws RemoteException{
 		//TODO
 		return null;
 	}
 	
 	
 	@Override
-	public boolean reserveSeat(int clientId, int row, int column){
+	public boolean reserveSeat(int clientId, int row, int column) throws RemoteException{
 		//TODO
 		return false;
 	}
 	
 	
 	@Override
-	public boolean acceptReservedSeat(int clientId){
+	public boolean acceptReservedSeat(int clientId) throws RemoteException{
 		//TODO
 		return false;
 	}
 	
 	
 	@Override
-	public boolean cancelReservation(int clientId){
+	public boolean cancelReservation(int clientId) throws RemoteException{
 		//TODO
 		return false;
 	}
 	
 	
 	@Override
-	public boolean stopServer(){
+	public boolean stopServer() throws RemoteException{
 		if (!online)
 			return false;
 		
@@ -64,7 +65,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	
 	
 	@Override
-	public boolean startServer(){
+	public boolean startServer() throws RemoteException{
 		if (online)
 			return false;
 		
