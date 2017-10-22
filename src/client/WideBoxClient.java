@@ -21,7 +21,6 @@ public class WideBoxClient {
 		try {
 			Registry registry = LocateRegistry.getRegistry(serverHost, serverPort);
 			wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
-			System.out.println("book: " + wideBoxServer.acceptReservedSeat(clientId));
 		} catch (RemoteException | NotBoundException e) {
 			throw new RemoteException("Error connecting to the server.");
 		}
