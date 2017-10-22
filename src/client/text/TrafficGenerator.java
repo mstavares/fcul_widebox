@@ -1,10 +1,72 @@
 package client.text;
 
+import java.rmi.RemoteException;
+import java.util.Map;
+import java.util.Random;
+import java.util.Scanner;
+
+import client.WideBoxClient;
+
 public class TrafficGenerator {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		Scanner sc = new Scanner(System.in);
+		String serverIp;
+		int serverPort;
+		int numClients;
+		
+		System.out.println("Insert the server IP:");
+		serverIp = sc.nextLine();
+		
+		System.out.println("Insert the server port:");
+		serverPort = sc.nextInt();
+		
+		
+		System.out.println("Insert the number of clients to use:");
+		numClients = sc.nextInt();
+		
+		for (int clientId = 1; clientId >= numClients; clientId++){
+			new Thread(new ClientRunnable(clientId, serverIp, serverPort)).start();
+		}
+		
+		sc.close();
+	}
+	
+	
+	private static class ClientRunnable implements Runnable {
+		
+		private int clientId;
+		private String serverIp;
+		private int serverPort;
 
+		public ClientRunnable(int clientId, String serverIp, int serverPort) {
+			this.clientId = clientId;
+			this.serverIp = serverIp;
+			this.serverPort = serverPort;
+		}
+
+		@Override
+		public void run() {
+			
+			try {
+				WideBoxClient client = new WideBoxClient(clientId, serverIp, serverPort);
+				
+				Map<Integer,String>  theaterList = client.getTheaters();
+				
+				Integer[] theaterIds = (Integer[]) theaterList.keySet().toArray();
+
+				client.getTheaterInfo( new Random().nextInt(theaterIds.length) );
+				
+				if (client.acceptReservedSeat() )
+					System.out.println("Client " + clientId + ": Accept the reserved seat.");
+				else
+					System.out.println("Client " + clientId + ": Error accepting reserved seat.");
+			} catch (RemoteException e) {
+				System.out.println("Client " + clientId + ": Error connecting to the server.");
+			}
+			
+		}
+		
 	}
 
 }
