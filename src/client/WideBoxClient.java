@@ -7,7 +7,6 @@ import java.rmi.registry.Registry;
 import java.util.Map;
 
 import common.Seat;
-import common.Theater;
 import server.WideBoxServer;
 
 public class WideBoxClient {

@@ -8,7 +8,6 @@ import java.util.Scanner;
 
 import client.WideBoxClient;
 import common.Seat;
-import common.Theater;
 
 public class ClientMain {
 
@@ -41,25 +40,27 @@ public class ClientMain {
 				System.out.println(t.getKey() + "- " + t.getValue());
 			}
 			
-			op = sc.nextInt();
+			int theaterId = sc.nextInt();
 			
-			Seat[][] theater = client.getTheaterInfo(op);
-			Boolean[][] seats = theater.getSeats();
+			Seat[][] seats = client.getTheaterInfo(theaterId);
 			boolean finished = false;
 			
 			while (!finished){
+				
 				for (int i = 0; i < seats.length; i++){
 					for (int j = 0; j < seats [i].length; j++){
-						if (i == theater.getReservationRow() && j == theater.getReservationColumn())
+						if ( seats[i][j].isSelf() )
 							System.out.print(ANSI_YELLOW + i + "." + j + " " + ANSI_RESET);
-						else if (seats[i][j])
+						else if ( seats[i][j].isReserved() )
 							System.out.print(ANSI_RED + i + "." + j + " " + ANSI_RESET);
+						else if ( !seats[i][j].isFree() )
+							System.out.print(ANSI_BLUE + i + "." + j + " " + ANSI_RESET);
 						else
-							System.out.print(i + j + " ");
+							System.out.print(ANSI_GREEN + i + "." + j + " " + ANSI_RESET);
 					}
 					System.out.print("\n");
 				}
-				System.out.println("The yellow seat is your current reservation, the red seats are occupied.");
+				System.out.println("The yellow seat is your current reservation, the red seats are reserved, and the blue seats are occupied.");
 				System.out.println("Choose an option:");
 				System.out.println("1- Reserve a new seat.");
 				System.out.println("2- Accept reserved seat.");
@@ -75,7 +76,7 @@ public class ClientMain {
 						System.out.println("Choose the column of the new seat:");
 						int column = sc.nextInt();
 						
-						if ( client.reserveSeat(row, column) )
+						if ( client.reserveSeat(theaterId, row, column) )
 							System.out.println("New seat reserved.");
 						else
 							System.out.println("Error reserving seat.");

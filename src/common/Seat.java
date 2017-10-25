@@ -3,8 +3,10 @@ package common;
 import java.io.Serializable;
 
 public class Seat implements Serializable {
+	
+	private static final long serialVersionUID = -7976704381597516668L;
 
-    /** Seat types available */
+	/** Seat types available */
     public enum SeatType {FREE, OCCUPIED, RESERVED, SELF}
 
     /** Client id which owns this seat */
@@ -25,7 +27,11 @@ public class Seat implements Serializable {
     public boolean isReserved() {
         return seat == SeatType.RESERVED;
     }
-
+    
+	public boolean isSelf() {
+		return seat == SeatType.SELF;
+	}
+	
     public int getClientId() {
         return clientId;
     }
@@ -47,5 +53,5 @@ public class Seat implements Serializable {
     public void setSelf() {
     	seat = SeatType.SELF;
     }
-
+    
 }
