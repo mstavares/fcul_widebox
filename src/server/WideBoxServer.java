@@ -4,22 +4,22 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.Map;
 
-import common.Theater;
+import common.Seat;
 
 public interface WideBoxServer extends Remote{
 
-	Map<Integer, String> getTheaters() throws RemoteException;
+	Map<String, Integer> getTheaters() throws RemoteException;
 
-	Theater getTheaterInfo(int theaterId) throws RemoteException;
+	Seat[][] getTheaterInfo(int theaterId, int clientId) throws RemoteException;
 
-	boolean reserveSeat(int clientId, int row, int column) throws RemoteException;
+	boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException;
 
-	boolean acceptReservedSeat(int clientId) throws RemoteException;
+	boolean acceptReservedSeat(int theaterId, int clientId, int row, int column) throws RemoteException;
 
-	boolean cancelReservation(int clientId) throws RemoteException;
+	boolean cancelReservation(int theaterId, int clientId, int row, int column) throws RemoteException;
 
 	boolean stopServer() throws RemoteException;
 
 	boolean startServer() throws RemoteException;
-
+	
 }

@@ -6,6 +6,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Map;
 
+import common.Seat;
 import common.Theater;
 import server.WideBoxServer;
 
@@ -27,18 +28,18 @@ public class WideBoxClient {
 
 	}
 	
-	public Map<Integer,String> getTheaters() throws RemoteException{
+	public Map<String, Integer> getTheaters() throws RemoteException{
 		return wideBoxServer.getTheaters();
 	}
 	
 	
-	public Theater getTheaterInfo(int theaterId) throws RemoteException{
-		return wideBoxServer.getTheaterInfo(theaterId);
+	public Seat[][] getTheaterInfo(int theaterId) throws RemoteException{
+		return wideBoxServer.getTheaterInfo(theaterId, id);
 	}
 	
 	
-	public boolean reserveSeat(int row, int column) throws RemoteException{
-		return wideBoxServer.reserveSeat(id, row, column);
+	public boolean reserveSeat(int theaterId, int row, int column) throws RemoteException{
+		return wideBoxServer.reserveSeat(theaterId, id, row, column);
 	}
 	
 	

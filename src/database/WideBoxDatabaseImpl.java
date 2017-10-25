@@ -1,69 +1,67 @@
 package database;
 
+import java.io.IOException;
+import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
 
+import common.Debugger;
+import common.Seat;
 import common.Theater;
 
 
-public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxDatabase{
+public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxDatabase {
 	
 	private static final long serialVersionUID = -3423585153833379299L;
-	
-	//opcodes to use when writing to the log
-	private final static int ACCEPT_ACTION = 10;
-	private final static int CANCEL_ACTION = 20;
-	private final static int RESERVE_ACTION = 50;
-	
-	private Map<Integer,Boolean[][]> database;
-	
-	
-	public WideBoxDatabaseImpl() throws RemoteException{
-		
-		//TODO if there isn't a Database.dat file
-		// create one based on the details on the Server.properties file with all seats at 0.
-		
-		//TODO If there is a Database.dat file and a Database.log file
-		// then update the Database with the log file and clear the log.
 
-		//TODO Restore Database.dat to the database object.
+	private DatabaseManager databaseManager;
+
+
+	WideBoxDatabaseImpl() throws IOException, ClassNotFoundException {
+		databaseManager = new DatabaseManager();
+		registerService();
+	}
+
+	private void registerService() {
+		try {
+			Registry registry = LocateRegistry.createRegistry(1099);
+			registry.bind("widebox", this);
+			Debugger.log("Database server is ready");
+		} catch (RemoteException | AlreadyBoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public Map<String, Integer> getTheaters() throws RemoteException{
+		return databaseManager.getTheaters();
 	}
 	
 	
 	@Override
-	public Map<Integer,String> getTeaters() throws RemoteException{
-		//TODO
-		return null;
+	public Seat[][] getTheatersInfo(int theaterId) throws RemoteException{
+		return databaseManager.getTheaterInfo(theaterId);
 	}
 	
 	
 	@Override
-	public Theater getTheaterInfo(int theaterId) throws RemoteException{
-		//TODO
-		return null;
+	public synchronized boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
+		return databaseManager.reserveSeat(theaterId, clientId, row, column);
 	}
 	
 	
 	@Override
-	public synchronized boolean reserveSeat(int clientId, int row, int column) throws RemoteException{
-		//TODO
-		return false;
+	public synchronized boolean acceptReservedSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
+		return databaseManager.acceptReservedSeat(theaterId, clientId, row, column);
 	}
 	
 	
 	@Override
-	public synchronized boolean acceptReservedSeat(int clientId) throws RemoteException{
-		//TODO
-		return false;
+	public synchronized boolean cancelReservation(int theaterId, int clientId, int row, int column) throws RemoteException{
+		return databaseManager.cancelReservation(theaterId, clientId, row, column);
 	}
-	
-	
-	@Override
-	public synchronized boolean cancelReservation(int clientId) throws RemoteException{
-		//TODO
-		return false;
-	}
-	
-	
+
 }

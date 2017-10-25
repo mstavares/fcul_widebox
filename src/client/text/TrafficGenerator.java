@@ -51,7 +51,7 @@ public class TrafficGenerator {
 			try {
 				WideBoxClient client = new WideBoxClient(clientId, serverIp, serverPort);
 				
-				Map<Integer,String>  theaterList = client.getTheaters();
+				Map<String, Integer>  theaterList = client.getTheaters();
 				
 				Integer[] theaterIds = (Integer[]) theaterList.keySet().toArray();
 

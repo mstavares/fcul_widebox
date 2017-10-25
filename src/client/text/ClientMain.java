@@ -7,6 +7,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 import client.WideBoxClient;
+import common.Seat;
 import common.Theater;
 
 public class ClientMain {
@@ -33,16 +34,16 @@ public class ClientMain {
 		
 		try {
 			WideBoxClient client = new WideBoxClient(clientId, serverIp, serverPort);
-			Map<Integer,String> theaterList = client.getTheaters();
+			Map<String, Integer> theaterList = client.getTheaters();
 			
 			System.out.println("Choose a theater: ");
-			for (Entry<Integer, String> t: theaterList.entrySet()){
+			for (Entry<String, Integer> t: theaterList.entrySet()){
 				System.out.println(t.getKey() + "- " + t.getValue());
 			}
 			
 			op = sc.nextInt();
 			
-			Theater theater = client.getTheaterInfo(op);
+			Seat[][] theater = client.getTheaterInfo(op);
 			Boolean[][] seats = theater.getSeats();
 			boolean finished = false;
 			
