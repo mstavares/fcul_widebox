@@ -16,7 +16,7 @@ public class ClientMain {
 	public static final String ANSI_GREEN = "\u001B[32m";
 	public static final String ANSI_YELLOW = "\u001B[33m";
 	public static final String ANSI_BLUE = "\u001B[34m";
-	
+
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
 		Random rd = new Random();
@@ -24,29 +24,29 @@ public class ClientMain {
 		int serverPort;
 		int op;
 		int clientId = rd.nextInt(10000); //TODO get this from the properties file
-		
+
 		System.out.println("Insert the server IP:");
 		serverIp = sc.nextLine();
-		
+
 		System.out.println("Insert the server port:");
 		serverPort = sc.nextInt();
-		
+
 		try {
 			WideBoxClient client = new WideBoxClient(clientId, serverIp, serverPort);
 			Map<String, Integer> theaterList = client.getTheaters();
-			
+
 			System.out.println("Choose a theater: ");
 			for (Entry<String, Integer> t: theaterList.entrySet()){
 				System.out.println(t.getKey() + "- " + t.getValue());
 			}
-			
+
 			int theaterId = sc.nextInt();
-			
+
 			Seat[][] seats = client.getTheaterInfo(theaterId);
 			boolean finished = false;
-			
+
 			while (!finished){
-				
+
 				for (int i = 0; i < seats.length; i++){
 					for (int j = 0; j < seats [i].length; j++){
 						if ( seats[i][j].isSelf() )
@@ -66,22 +66,22 @@ public class ClientMain {
 				System.out.println("2- Accept reserved seat.");
 				System.out.println("3- Cancel reservation.");
 				System.out.println("0- Exit.");
-				
+
 				op = sc.nextInt();
-				
+
 				switch (op){
 					case 1:
 						System.out.println("Choose the row of the new seat:");
 						int row = sc.nextInt();
 						System.out.println("Choose the column of the new seat:");
 						int column = sc.nextInt();
-						
+
 						if ( client.reserveSeat(theaterId, row, column) )
 							System.out.println("New seat reserved.");
 						else
 							System.out.println("Error reserving seat.");
 						break;
-						
+
 					case 2:
 						if ( client.acceptReservedSeat() ){
 							System.out.println("Seat accepted.");
@@ -89,7 +89,7 @@ public class ClientMain {
 						}else
 							System.out.println("Error accepting seat.");
 						break;
-						
+
 					case 3:
 						if ( client.cancelReservation() ){
 							System.out.println("Reservation canceled.");
@@ -97,7 +97,7 @@ public class ClientMain {
 						}else
 							System.out.println("Error canceling reservation.");
 						break;
-						
+
 					case 0:
 						finished = false;
 						break;
@@ -106,8 +106,8 @@ public class ClientMain {
 		} catch (RemoteException e) {
 			System.out.println("Error connecting to the server.");
 		}
-		
+
 		sc.close();
 	}
-	
+
 }

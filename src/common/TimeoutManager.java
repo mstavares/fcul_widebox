@@ -1,15 +1,16 @@
 package common;
 
-import database.SeatTimeoutListener;
+
+import server.SeatTimeoutListener;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
+
 public class TimeoutManager {
 
     private TimeoutListener timeoutListener;
-
-    private String seatId;
+    private int clientId;
 
     private Timer timer;
 
@@ -20,9 +21,10 @@ public class TimeoutManager {
         this.time = time;
     }
 
-    public TimeoutManager(TimeoutListener timeoutListener, int time, String seatId) {
+    public TimeoutManager(TimeoutListener timeoutListener, int time, int clientId) {
         this(timeoutListener, time);
-        this.seatId = seatId;
+        this.clientId = clientId;
+
     }
 
     public void runOnlyOnce() {
@@ -46,7 +48,7 @@ public class TimeoutManager {
         @Override
         public void run() {
             if (timeoutListener instanceof SeatTimeoutListener)
-                ((SeatTimeoutListener) timeoutListener).onSeatTimeout(seatId);
+                ((SeatTimeoutListener) timeoutListener).onSeatTimeout(clientId);
             else
                 ((TimeoutListener.Timeout) timeoutListener).timeout();
         }

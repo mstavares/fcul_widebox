@@ -14,12 +14,12 @@ public interface WideBoxServer extends Remote{
 
 	boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException;
 
-	boolean acceptReservedSeat(int theaterId, int clientId, int row, int column) throws RemoteException;
+	boolean acceptReservedSeat(int clientId) throws RemoteException;
 
-	boolean cancelReservation(int theaterId, int clientId, int row, int column) throws RemoteException;
+	boolean cancelReservation(int clientId) throws RemoteException;
 
 	boolean stopServer() throws RemoteException;
 
 	boolean startServer() throws RemoteException;
-	
+
 }
