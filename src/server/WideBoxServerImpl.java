@@ -112,7 +112,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	public Map<String, Integer> getTheaters() throws RemoteException{
 		if (!isOnline())
 			throw new RemoteException("Server is Offline");
-		Debugger.log("Got Request for getTheaters");
+		Debugger.log("Got Request for Theaters");
 		return wideBoxDatabase.getTheaters();
 	}
 
@@ -148,6 +148,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 			cancelReservation(clientId);
 		}
 		if (wideBoxDatabase.reserveSeat(theaterId, clientId, row, column)){
+			Debugger.log("Reserving seat for clientID " + clientId);
 			reservationMap.put(clientId, new Reservation(theaterId, new Place(row, column)));
 			// Este construtor tambem está horrivel, mas por agora serve
 			TimeoutManager timeout = new TimeoutManager(this, properties.getTimeoutValue(), clientId);
@@ -200,9 +201,10 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 	@Override
 	public boolean stopServer() throws RemoteException{
+		Debugger.log("Stopping server");
 		if (!online)
 			return false;
-
+		
 		online = false;
 		return true;
 	}
@@ -210,6 +212,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 	@Override
 	public boolean startServer() throws RemoteException{
+		Debugger.log("Starting server");
 		if (online)
 			return false;
 
@@ -231,10 +234,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 				}
 			}
 		}
-		// Debugger.log("Lugares livres: " + freeSeats.size());
-		int index = randomGenerator.nextInt(freeSeats.size());
-		// Debugger.log("Index escolhido: " + index);
-		return freeSeats.get(index);
+		return freeSeats.get(randomGenerator.nextInt(freeSeats.size()));
 	}
 	
 	private boolean clientHasReservation(int clientId) {
