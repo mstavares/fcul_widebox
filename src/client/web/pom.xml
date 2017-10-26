@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   
   <groupId>pt.ulisboa.ciencias.di.psd1718.group03.widebox</groupId>
-  <artifactId>widebox</artifactId>
+  <artifactId>widebox-web</artifactId>
   <version>1.0</version>
   
   <packaging>pom</packaging>

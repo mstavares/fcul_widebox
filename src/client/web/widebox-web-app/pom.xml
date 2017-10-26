@@ -2,12 +2,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>pt.ulisboa.ciencias.di</groupId>
-    <artifactId>calculator</artifactId>
+    <groupId>pt.ulisboa.ciencias.di.psd1718.group03.widebox</groupId>
+    <artifactId>widebox-web</artifactId>
     <version>1.0</version>
   </parent>
 
-  <artifactId>calculator-web-app</artifactId>
+  <artifactId>widebox-web-app</artifactId>
 
   <packaging>war</packaging>
 
@@ -15,13 +15,6 @@
 	<dependencies>
 
 		<!-- Dependency on the EJB module so we can use its services if needed -->
-		<dependency>
-			<groupId>pt.ulisboa.ciencias.di</groupId>
-			<artifactId>calculator-business</artifactId>
-			<type>ejb-client</type>
-			<version>1.0</version>
-			<scope>provided</scope>
-		</dependency>
 
 		<!-- Import the EJB API -->
 		<dependency>
