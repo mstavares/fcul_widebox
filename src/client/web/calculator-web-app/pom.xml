@@ -2,12 +2,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>pt.ulisboa.ciencias.di</groupId>
-    <artifactId>calculator</artifactId>
+    <groupId>pt.ulisboa.ciencias.di.psd1718.group03.widebox</groupId>
+    <artifactId>widebox</artifactId>
     <version>1.0</version>
   </parent>
 
-  <artifactId>calculator-web-app</artifactId>
+  <artifactId>widebox-web-app</artifactId>
 
   <packaging>war</packaging>
 
