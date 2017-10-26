@@ -27,8 +27,8 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 
 	private void registerService() {
 		try {
-			Registry registry = LocateRegistry.createRegistry(1099);
-			registry.bind("widebox", this);
+			Registry registry = LocateRegistry.createRegistry(1098);
+			registry.bind("WideBoxDatabase", this);
 			Debugger.log("Database server is ready");
 		} catch (RemoteException | AlreadyBoundException e) {
 			e.printStackTrace();

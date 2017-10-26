@@ -7,6 +7,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 import client.WideBoxClient;
+import common.Debugger;
 import common.Seat;
 
 public class ClientMain {
@@ -33,6 +34,7 @@ public class ClientMain {
 
 		try {
 			WideBoxClient client = new WideBoxClient(clientId, serverIp, serverPort);
+			Debugger.log("Got Remote Object");
 			Map<String, Integer> theaterList = client.getTheaters();
 
 			System.out.println("Choose a theater: ");
@@ -42,11 +44,13 @@ public class ClientMain {
 
 			int theaterId = sc.nextInt();
 
-			Seat[][] seats = client.getTheaterInfo(theaterId);
+
 			boolean finished = false;
-
+			
 			while (!finished){
-
+				
+				Seat[][] seats = client.getTheaterInfo(theaterId);
+				
 				for (int i = 0; i < seats.length; i++){
 					for (int j = 0; j < seats [i].length; j++){
 						if ( seats[i][j].isSelf() )
@@ -99,11 +103,12 @@ public class ClientMain {
 						break;
 
 					case 0:
-						finished = false;
+						finished = true;
 						break;
 				}
 			}
 		} catch (RemoteException e) {
+			e.printStackTrace();
 			System.out.println("Error connecting to the server.");
 		}
 

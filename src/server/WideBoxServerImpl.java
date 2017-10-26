@@ -1,6 +1,7 @@
 package server;
 
 import java.io.IOException;
+import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import common.Debugger;
 import common.Seat;
 import common.TimeoutManager;
 import database.WideBoxDatabase;
@@ -69,12 +71,23 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	}
 
 
+	/**
+	 * Só consegui por a funcionar tendo o vm argument 
+	 * -Djava.rmi.server.hostname=ip-dos-servidores
+	 * e iniciando o rmiregistry antes dos servidores.
+	 * Alterei tambem a porta 1099 do database server
+	 */
+	
 	public WideBoxServerImpl(String host, int port) throws IOException, RemoteException {
 		super();
 
 		try {
 			Registry registry = LocateRegistry.getRegistry(host, port);
 			wideBoxDatabase = (WideBoxDatabase) registry.lookup("WideBoxDatabase");
+			registerService();
+			online = true;
+			randomGenerator = new Random();
+			Debugger.log("Application server is ready");
 		} catch (RemoteException | NotBoundException e) {
 			throw new RemoteException("Error connecting to the Database Server.");
 		}
@@ -83,12 +96,23 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		reservationMap = new HashMap<>();
 
 	}
+	
+	private void registerService() throws RemoteException {
+		try {
+			Registry registry = LocateRegistry.createRegistry(1090);
+			registry.bind("WideBoxServer", this);
+		} catch (RemoteException | AlreadyBoundException e) {
+			e.printStackTrace();
+			throw new RemoteException("Error creating registry");
+		}
+	}
 
 
 	@Override
 	public Map<String, Integer> getTheaters() throws RemoteException{
 		if (!isOnline())
 			throw new RemoteException("Server is Offline");
+		Debugger.log("Got Request for getTheaters");
 		return wideBoxDatabase.getTheaters();
 	}
 
@@ -97,22 +121,32 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	public Seat[][] getTheaterInfo(int theaterId, int clientId) throws RemoteException{
 		if (!isOnline())
 			throw new RemoteException("Server is Offline");
-
+		Debugger.log("Got info request for theather " + theaterId + " from clientID " + clientId);
 		Seat[][] seats = wideBoxDatabase.getTheatersInfo(theaterId);
-		Place seat = pickFreeSeat(seats);
-		if(!reserveSeat(theaterId, clientId, seat.getRow(), seat.getColumn())) {
-			throw new RemoteException("Error automatically reserving seat");
+		if(!clientHasReservation(clientId)) {
+			Place seat = pickFreeSeat(seats);
+			if(!reserveSeat(theaterId, clientId, seat.getRow(), seat.getColumn())) {
+				Debugger.log("Seat was not reserved");
+				throw new RemoteException("Error automatically reserving seat");
+			}
+			seats[seat.getRow()][seat.getColumn()].setSelf();
+		} else {
+			Reservation reservation = reservationMap.get(clientId);
+			seats[reservation.getPlace().getRow()][reservation.getPlace().getColumn()].setSelf();
 		}
-		seats[seat.getRow()][seat.getColumn()].setSelf();
-
 		return seats;
 	}
 
-
+	
+	// TODO cancelar reserva quando cliente pede nova reserva
+	
 	@Override
 	public boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
 		if (!isOnline())
 			throw new RemoteException("Server is Offline");
+		if (clientHasReservation(clientId)) {
+			cancelReservation(clientId);
+		}
 		if (wideBoxDatabase.reserveSeat(theaterId, clientId, row, column)){
 			reservationMap.put(clientId, new Reservation(theaterId, new Place(row, column)));
 			// Este construtor tambem está horrivel, mas por agora serve
@@ -137,6 +171,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 			timeout.stop();
 			timeoutMap.remove(clientId);
 			reservationMap.remove(clientId);
+			Debugger.log("Confirmed reservation for clientId " + clientId);
 			return true;
 		}
 		return false;
@@ -156,6 +191,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 			timeout.stop();
 			timeoutMap.remove(clientId);
 			reservationMap.remove(clientId);
+			Debugger.log("Canceled reservation for clientId " + clientId);
 			return true;
 		}
 		return false;
@@ -195,13 +231,21 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 				}
 			}
 		}
-		return freeSeats.get(randomGenerator.nextInt(freeSeats.size()));
+		// Debugger.log("Lugares livres: " + freeSeats.size());
+		int index = randomGenerator.nextInt(freeSeats.size());
+		// Debugger.log("Index escolhido: " + index);
+		return freeSeats.get(index);
+	}
+	
+	private boolean clientHasReservation(int clientId) {
+		return reservationMap.containsKey(clientId);
 	}
 
 
 	@Override
 	public void onSeatTimeout(int clientId) {
 		try {
+			Debugger.log("Reserved Seat timeout for clientId " + clientId);
 			cancelReservation(clientId);
 		} catch (RemoteException e) {
 			e.printStackTrace();

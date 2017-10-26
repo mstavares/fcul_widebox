@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
 
 import client.WideBoxClient;
 
@@ -25,7 +26,7 @@ public class TrafficGenerator {
 		System.out.println("Insert the number of clients to use:");
 		numClients = sc.nextInt();
 		
-		for (int clientId = 1; clientId >= numClients; clientId++){
+		for (int clientId = 1; clientId <= numClients; clientId++){
 			new Thread(new ClientRunnable(clientId, serverIp, serverPort)).start();
 		}
 		
@@ -53,9 +54,7 @@ public class TrafficGenerator {
 				
 				Map<String, Integer>  theaterList = client.getTheaters();
 				
-				Integer[] theaterIds = (Integer[]) theaterList.keySet().toArray();
-
-				client.getTheaterInfo( new Random().nextInt(theaterIds.length) );
+				client.getTheaterInfo( new Random().nextInt(theaterList.size()) );
 				
 				if (client.acceptReservedSeat() )
 					System.out.println("Client " + clientId + ": Accept the reserved seat.");

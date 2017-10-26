@@ -6,6 +6,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Map;
 
+import common.Debugger;
 import common.Seat;
 import server.WideBoxServer;
 
@@ -22,6 +23,7 @@ public class WideBoxClient {
 			Registry registry = LocateRegistry.getRegistry(serverHost, serverPort);
 			wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
 		} catch (RemoteException | NotBoundException e) {
+			e.printStackTrace();
 			throw new RemoteException("Error connecting to the server.");
 		}
 
