@@ -13,9 +13,14 @@
 
 
 	<dependencies>
-
-		<!-- Dependency on the EJB module so we can use its services if needed -->
-
+		<!--
+		<dependency>
+			<groupId>pt.ulisboa.ciencias.di.psd1718.group03</groupId>
+			<artifactId>WideBox</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		 -->
+		 
 		<!-- Import the EJB API -->
 		<dependency>
 			<groupId>org.jboss.spec.javax.ejb</groupId>
@@ -36,7 +41,12 @@
 			<artifactId>jboss-jstl-api_1.2_spec</artifactId>
 			<scope>provided</scope>
 		</dependency>
-
+		
+		<dependency>
+		    <groupId>com.google.code.gson</groupId>
+		    <artifactId>gson</artifactId>
+		    <version>2.8.2</version>
+		</dependency>
 	</dependencies>
 
 

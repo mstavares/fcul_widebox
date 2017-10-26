@@ -5,9 +5,9 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Insert title here</title>
+<title>Result</title>
 </head>
 <body>
-	 <p><c:out value ="${param['a']}"></c:out> x <c:out value ="${param['b']}"></c:out> = <c:out value ="${result}"></c:out></p>
+	 <c:out value ="${result}"></c:out>
 </body>
 </html>
