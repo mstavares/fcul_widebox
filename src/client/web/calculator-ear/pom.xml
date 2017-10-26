@@ -1,0 +1,60 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>pt.ulisboa.ciencias.di</groupId>
+    <artifactId>calculator</artifactId>
+    <version>1.0</version>
+  </parent>
+  
+  <artifactId>calculator-ear</artifactId>
+
+  <packaging>ear</packaging>
+
+	<dependencies>
+
+		<!-- Depend on the ejb module and war so that we can package them -->
+		<dependency>
+			<groupId>pt.ulisboa.ciencias.di</groupId>
+			<artifactId>calculator-web-app</artifactId>
+			<version>1.0</version>
+			<type>war</type>
+		</dependency>
+
+
+
+	</dependencies>
+
+
+	<build>
+		<plugins>
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-acr-plugin</artifactId>
+                <version>${version.acr.plugin}</version>
+                <extensions>true</extensions>
+            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-ear-plugin</artifactId>
+				<version>${version.ear.plugin}</version>
+				<configuration>
+					<!-- Tell Maven we are using Java EE 7 -->
+					<version>7</version>
+					<!-- Use Java EE ear libraries as needed. Java EE ear libraries are 
+						in easy way to package any libraries needed in the ear, and automatically 
+						have any modules (EJB-JARs and WARs) use them -->
+					<defaultLibBundleDir>lib</defaultLibBundleDir>
+					<modules>
+						<webModule>
+							<groupId>pt.ulisboa.ciencias.di</groupId>
+							<artifactId>calculator-web-app</artifactId>
+							<contextRoot>/calculator-web-app</contextRoot>
+						</webModule>
+					</modules>
+					<fileNameMapping>no-version</fileNameMapping>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

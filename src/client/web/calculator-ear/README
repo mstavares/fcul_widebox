@@ -1,0 +1,32 @@
+Tal como na música de William Cowper "God moves in a mysterious ways", 
+o classloader do application server também!!!! Para se perceber como, 
+ver: https://docs.jboss.org/author/display/WFLY10/Class+Loading+in+WildFly
+
+Portanto, as classes são carregadas de forma explícita e não bastanto 
+simplesmente estar no classpath. Até as classes do JDK não são todas 
+carregadas de forma automática. Acontece que o JavaFX é um destes pacotes.
+Ou seja, o jfxrt.jar, embora no classpath não é carregado!!
+
+Para o fazer há que explicitamente. Na secção Accessing JDK classes
+do link acima está a explicação de como indicar as classes do JDK que 
+queremos carregar. Alias o jboss-deployment-structure.xml é um mundo
+de possibilidades para incluir/excludir classes.
+
+Depois de se fazer o ficheiro jboss-deployment-structure.xml é necessário
+convencer o maven a fazer o seu deployment, e isto também é longe de 
+ser trivial, para quem não sabe. Ver o link a seguir sobre como 
+configurar o maven-ear-plugin: http://maven.apache.org/plugins/maven-ear-plugin
+Em particular, a secção Usage (menu do lado esquerdo) > Copying resources 
+diz que o dir por defeito no projeto ear é src/main/application. Então,
+se o ficheiro jboss-deployment-structure.xml estiver no dir
+src/main/application/META-INF é alegremente copiado para o ear para o 
+sítio certo e tudo funciona lindamente!!!! 
+
+O appclient corre-se com o comando a partir do dir calculator
+
+JBOSSHOME/bin/appclient.sh calculator-ear/target/calculator-ear-1.0.ear#calculator-app-client.jar
+
+e voila, abre-se uma janela de Java FX. 
+
+Podia ser ainda mais complicado, mas não é e assim talvez consiga dormir
+na próxima noite!!!

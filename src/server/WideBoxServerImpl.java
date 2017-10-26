@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Random;
 
 import common.Seat;
-import common.Theater;
 import common.TimeoutManager;
 import database.WideBoxDatabase;
 
