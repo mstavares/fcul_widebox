@@ -15,7 +15,6 @@ public class Seat implements Serializable {
     /** Current seat type */
     private SeatType seat;
 
-
     public Seat() {
         seat = SeatType.FREE;
     }

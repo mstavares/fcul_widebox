@@ -11,8 +11,11 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	/** Database file name */
 	private static final String DATABASE_FILE_NAME = "database.dat";
 
+	/** Database folder name */
+	private static final String DATABASE_FOLDER = "database";
+
 	/** Database file path */
-	private static final String DATABASE_PATH = "database/" + DATABASE_FILE_NAME;
+	private static final String DATABASE_PATH = DATABASE_FOLDER + File.separator + DATABASE_FILE_NAME;
 
 	/** HashMap which contains all theaters available */
 	private Map<Integer, Seat[][]> database = new HashMap<>();
@@ -23,16 +26,23 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	/** Database server properties object */
 	private DatabaseProperties properties;
 
+	/** This timeout is used to store the database in file */
 	private TimeoutManager timeoutManager;
 
+	/** This object is used to save requests in memory and also in file */
+	private Log log;
+
 	DatabaseManager() throws IOException, ClassNotFoundException {
+		properties = new DatabaseProperties();
 		if(!isDatabaseCreated()) {
-			properties = new DatabaseProperties();
+			createDatabaseFolder();
 			createDatabase();
+			writeDatabaseToFile();
 		} else {
 			restoreDatabaseFromFile();
 		}
 		loadTheaters();
+		log = new Log();
 		timeoutManager = new TimeoutManager(this, properties.getTimeoutValue());
 		timeoutManager.runRepeatly();
 	}
@@ -47,9 +57,18 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		return new File(DATABASE_PATH).exists();
 	}
 
+	private void createDatabaseFolder() {
+		new File(DATABASE_FOLDER).mkdir();
+	}
+
 	private void createDatabase() {
 		for(int theater = 0; theater < properties.getNumberOfTheaters(); theater++) {
 			database.put(theater, new Seat[properties.getRowsPerTheater()][properties.getColumnsPerTheater()]);
+			for(int row = 0; row < properties.getRowsPerTheater(); row++) {
+				for(int column = 0; column < properties.getColumnsPerTheater(); column++) {
+					database.get(theater)[row][column] = new Seat();
+				}
+			}
 		}
 	}
 
@@ -89,6 +108,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		Seat seat = database.get(theaterId)[row][column];
 		if(seat.isFree()) {
 			seat.reserveSeat(clientId);
+			log.appendReserveAction(theaterId, clientId, row, column);
 			return true;
 		}
 		return false;
@@ -98,6 +118,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		Seat seat = database.get(theaterId)[row][column];
 		if(seat.isReserved() && seat.getClientId() == clientId) {
 			seat.setOccupied();
+			log.appendAcceptAction(theaterId, clientId, row, column);
 			return true;
 		}
 		return false;
@@ -107,29 +128,23 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		Seat seat = database.get(theaterId)[row][column];
 		if(seat.isReserved() && seat.getClientId() == clientId) {
 			seat.freeSeat();
+			log.appendCancelAction(theaterId, clientId, row, column);
 			return true;
 		}
 		return false;
 	}
 
-	/**
-	 * Adds a operation to the log
-	 * @param opcode The opcode of the action
-	 * @param clientId The client id
-	 * @return True if the operation was added to the log
-	 */
-	public boolean log(int opcode, int clientId){
-		//TODO
-		return false;
-	}
-
 	@Override
 	public void timeout() {
+		/*
 		try {
 			writeDatabaseToFile();
+			Debugger.log("A base de dados foi guardada com sucesso.");
 		} catch (IOException e) {
 			Debugger.log("Ocorreu um erro ao guardar a BD em ficheiro.");
+			e.printStackTrace();
 		}
+		*/
 	}
 
 }
