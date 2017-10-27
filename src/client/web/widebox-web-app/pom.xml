@@ -13,19 +13,11 @@
 
 
 	<dependencies>
-		<!--
 		<dependency>
 			<groupId>pt.ulisboa.ciencias.di.psd1718.group03</groupId>
 			<artifactId>WideBox</artifactId>
 			<scope>provided</scope>
-		</dependency>
-		 -->
-		 
-		<!-- Import the EJB API -->
-		<dependency>
-			<groupId>org.jboss.spec.javax.ejb</groupId>
-			<artifactId>jboss-ejb-api_3.2_spec</artifactId>
-			<scope>provided</scope>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<!-- provides servlets -->

@@ -31,5 +31,18 @@ function createObject(){
 
 
 function startClient(){
-	alert("kek 123");
+    document.getElementById("theaterList").innerHTML = "started";
+    //TODO ajax call and fill the theater list
+}
+
+
+function confirmReservation(){
+    document.getElementById("theaterList").innerHTML = "confirmed";
+    //TODO ajax call to confirm
+}
+
+
+function cancelReservation(){
+    document.getElementById("theaterList").innerHTML = "canceled";
+    //TODO ajax call to cancel
 }

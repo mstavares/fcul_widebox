@@ -11,17 +11,12 @@
   <packaging>ear</packaging>
 
 	<dependencies>
-
-		<!-- Depend on the ejb module and war so that we can package them -->
 		<dependency>
 			<groupId>pt.ulisboa.ciencias.di.psd1718.group03.widebox</groupId>
 			<artifactId>widebox-web-app</artifactId>
 			<version>1.0</version>
 			<type>war</type>
 		</dependency>
-
-
-
 	</dependencies>
 
 
