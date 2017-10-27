@@ -12,7 +12,7 @@
   <modules>
 
   	<module>widebox-app</module>
-  	<module>widebox-web-app</module>
+  	<module>widebox-web-client</module>
   	<module>widebox-ear</module>
   	
   	

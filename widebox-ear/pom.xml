@@ -19,7 +19,7 @@
 
 		<dependency>
 			<groupId>pt.ulisboa.ciencias.di.psd1718.group03</groupId>
-			<artifactId>widebox-web-app</artifactId>
+			<artifactId>widebox-web-client</artifactId>
 			<version>1.0</version>
 			<type>war</type>
 		</dependency>
@@ -48,8 +48,8 @@
 					<modules>
 						<webModule>
 							<groupId>pt.ulisboa.ciencias.di.psd1718.group03</groupId>
-							<artifactId>widebox-web-app</artifactId>
-							<contextRoot>/widebox-web-app</contextRoot>
+							<artifactId>widebox-web-client</artifactId>
+							<contextRoot>/widebox-web-client</contextRoot>
 						</webModule>
 					</modules>
 					<fileNameMapping>no-version</fileNameMapping>
