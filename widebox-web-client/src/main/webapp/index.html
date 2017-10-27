@@ -6,29 +6,21 @@
 		<link rel="stylesheet" href="style.css">
 		<script type="text/javascript" src="script.js"></script>
 	</head>
-	<body>
-		insert javascript app here v2
-		test uf8 kek à ó
-		<!--
-		<form action="CalculatorPageController" method="get">
-			<input name="a" type="text">
-			<input name="b" type="text">
-			<input type="submit" value="Product">
-		</form>
-		 -->
-		 
-		<div id="menu">
+	<body>		 
+		<div class="center" id="menu">
 			<form>
-				<input class="btn" type="submit" value="Start Client" onclick="startClient(); return false;"></input>
+				<input class="btn" type="submit" value="New Client" onclick="startClient(); return false;"></input>
 			</form>
 		</div>
+		<p></p>
+		<div class="view" id="theaterList"></div>
 		
-		<div id="theaterList"></div>
-		
-		<div id="theaterInfo">
+		<div class="view center" id="theaterInfo">
+			This is the theater, your reserved seat is the yellow one, reds are reserved, blues are occupied.
+			Click any green seat to change your reservation.
 			<div id="theaterTable"></div>
-			<input class="btn" type="submit" value="Confirm Reservation" onclick="confirmReservation(); return false;"></input>
-			<input class="btn" type="submit" value="Cancel Reservation" onclick="cancelReservation(); return false;"></input>
+			<p></p>
+			<div id="buttons"></div>
 		</div>
 	</body>
 </html>

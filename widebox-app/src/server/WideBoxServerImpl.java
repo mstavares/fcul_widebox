@@ -165,7 +165,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 			throw new RemoteException("Server is Offline");
 		Reservation reservation = reservationMap.get(clientId);
 		if(reservation == null) {
-			throw new RemoteException("No Reservation for this client present");
+			return false;
 		}
 		if (wideBoxDatabase.acceptReservedSeat(reservation.getTheaterId(), clientId, reservation.getPlace().getRow(), reservation.getPlace().getColumn())) {
 			TimeoutManager timeout = timeoutMap.get(clientId);
@@ -185,7 +185,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 			throw new RemoteException("Server is Offline");
 		Reservation reservation = reservationMap.get(clientId);
 		if(reservation == null) {
-			throw new RemoteException("No Reservation for this client present");
+			return false;
 		}
 		if (wideBoxDatabase.cancelReservation(reservation.getTheaterId(), clientId, reservation.getPlace().getRow(), reservation.getPlace().getColumn())) {
 			TimeoutManager timeout = timeoutMap.get(clientId);

@@ -3,46 +3,33 @@ body {
 }
 
 table {
-	color: #333;
-	font-family: Helvetica, Arial, sans-serif;
-	width: 640px;
-	/* Table reset stuff */
-	border-collapse: collapse;
-	border-spacing: 0;
+	margin: auto;
 }
 
-td, th {
-	border: 0 none;
-	height: 30px;
+.self{
+	color: yellow;
 }
 
-th {
-	/* Gradient Background */
-	background: linear-gradient(#333 0%, #444 100%);
-	color: #FFF;
-	font-weight: bold;
-	height: 40px;
+.reserved{
+	color: red;
 }
 
-td {
-	background: #FAFAFA;
+.occupied{
+	color: blue;
+}
+
+.free{
+	color: green;
+}
+
+.free a {
+	color: inherit;
+}
+
+.view{
+	display: none;
+}
+
+.center{
 	text-align: center;
-}
-
-/* Zebra Stripe Rows */
-tr:nth-child(even) td {
-	background: #EEE;
-}
-
-tr:nth-child(odd) td {
-	background: #FDFDFD;
-}
-
-/* Add border-radius to specific cells! */
-tr:first-child th:nth-child(1) {
-	border-radius: 5px 0 0 0;
-}
-
-tr:first-child th:last-child {
-	border-radius: 0 5px 0 0;
 }
