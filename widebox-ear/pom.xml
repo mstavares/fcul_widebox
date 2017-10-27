@@ -15,7 +15,6 @@
 			<groupId>pt.ulisboa.ciencias.di.psd1718.group03</groupId>
 			<artifactId>widebox-app</artifactId>
 			<version>1.0</version>
-			<type>war</type>
 		</dependency>
 
 		<dependency>

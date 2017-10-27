@@ -9,10 +9,6 @@
 
 	<artifactId>widebox-app</artifactId>
 
-  <version>0.0.1-SNAPSHOT</version>
-  <name>WideBox</name>
-  <description>Design and implementation of a distributed and resilient very-large scale interactive system.</description>
-    
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
