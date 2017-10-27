@@ -6,7 +6,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Map;
 
-import common.Debugger;
 import common.Seat;
 import server.WideBoxServer;
 

@@ -3,7 +3,6 @@ package database;
 import common.Seat;
 
 import java.io.*;
-import java.util.HashMap;
 import java.util.Map;
 
 import static database.Log.OperationType.ACCEPT_ACTION;
@@ -84,6 +83,7 @@ class Log {
             String[] parsedData = line.split(SEP_STR);
             processLine(database, parsedData);
         }
+        bufRead.close();
     }
 
 }

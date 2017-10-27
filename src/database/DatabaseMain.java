@@ -1,11 +1,6 @@
 package database;
 
-import common.Debugger;
-import common.Seat;
-
 import java.io.*;
-import java.util.Iterator;
-import java.util.Map;
 
 public class DatabaseMain {
 

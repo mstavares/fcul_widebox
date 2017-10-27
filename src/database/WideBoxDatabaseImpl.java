@@ -10,7 +10,6 @@ import java.util.Map;
 
 import common.Debugger;
 import common.Seat;
-import common.Theater;
 
 
 public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxDatabase {
