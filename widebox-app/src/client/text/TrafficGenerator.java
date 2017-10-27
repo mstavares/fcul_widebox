@@ -15,11 +15,17 @@ public class TrafficGenerator {
 		int serverPort;
 		int numClients;
 		
-		System.out.println("Insert the server IP:");
-		serverIp = sc.nextLine();
-		
-		System.out.println("Insert the server port:");
-		serverPort = sc.nextInt();
+		if (args.length >= 2){
+			serverIp = args[0];
+			serverPort = Integer.parseInt(args[1]);
+		}else{
+			System.out.println("Couldn't get ip and port arguments.");
+			System.out.println("Insert the server IP:");
+			serverIp = sc.nextLine();
+
+			System.out.println("Insert the server port:");
+			serverPort = sc.nextInt();
+		}
 		
 		
 		System.out.println("Insert the number of clients to use:");
