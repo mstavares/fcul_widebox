@@ -219,8 +219,10 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		online = true;
 		return true;
 	}
-
-	private boolean isOnline() {
+	
+	
+	@Override
+	public boolean isOnline() throws RemoteException{
 		return this.online;
 	}
 

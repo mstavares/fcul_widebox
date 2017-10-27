@@ -21,5 +21,7 @@ public interface WideBoxServer extends Remote{
 	boolean stopServer() throws RemoteException;
 
 	boolean startServer() throws RemoteException;
+	
+	boolean isOnline() throws RemoteException;
 
 }
