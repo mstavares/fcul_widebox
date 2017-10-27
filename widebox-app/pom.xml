@@ -1,7 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>pt.ulisboa.ciencias.di.psd1718.group03</groupId>
-  <artifactId>WideBox</artifactId>
+
+  <parent>
+    <groupId>pt.ulisboa.ciencias.di.psd1718.group03</groupId>
+    <artifactId>widebox</artifactId>
+    <version>1.0</version>
+  </parent>
+
+	<artifactId>widebox-app</artifactId>
+
   <version>0.0.1-SNAPSHOT</version>
   <name>WideBox</name>
   <description>Design and implementation of a distributed and resilient very-large scale interactive system.</description>
@@ -15,9 +22,6 @@
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
-          <excludes>
-          	<exclude>**/client/web/**</exclude>
-          </excludes>
         </configuration>
       </plugin>
     </plugins>

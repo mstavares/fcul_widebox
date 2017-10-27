@@ -2,8 +2,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>pt.ulisboa.ciencias.di.psd1718.group03.widebox</groupId>
-    <artifactId>widebox-web</artifactId>
+    <groupId>pt.ulisboa.ciencias.di.psd1718.group03</groupId>
+    <artifactId>widebox</artifactId>
     <version>1.0</version>
   </parent>
 
@@ -15,9 +15,8 @@
 	<dependencies>
 		<dependency>
 			<groupId>pt.ulisboa.ciencias.di.psd1718.group03</groupId>
-			<artifactId>WideBox</artifactId>
-			<scope>provided</scope>
-			<version>0.0.1-SNAPSHOT</version>
+			<artifactId>widebox</artifactId>
+			<version>1.0</version>
 		</dependency>
 
 		<!-- provides servlets -->
