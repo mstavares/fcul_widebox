@@ -5,6 +5,7 @@ import common.Seat;
 import java.io.*;
 import java.util.Map;
 
+import static common.Utilities.getFileSeparator;
 import static database.Log.OperationType.ACCEPT_ACTION;
 import static database.Log.OperationType.CANCEL_ACTION;
 import static database.Log.OperationType.RESERVE_ACTION;
@@ -15,7 +16,8 @@ class Log {
     private static final String LOG_FILE_NAME = "database.log";
 
     /** Database file path */
-    private static final String LOG_PATH = "database/" + LOG_FILE_NAME;
+    private static final String LOG_PATH = "widebox-app" + getFileSeparator() +
+            "database" + getFileSeparator() + LOG_FILE_NAME;
 
     /** String used to separate data on logs */
     private static final String SEP_STR = " ";
@@ -43,6 +45,7 @@ class Log {
 
     private void writeToFile(String log) {
         writer.println(log);
+        writer.flush();
     }
 
     private void processLine(Map<Integer, Seat[][]> database, String[] parsedData) {

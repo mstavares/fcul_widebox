@@ -6,16 +6,18 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static common.Utilities.getFileSeparator;
+
 public class DatabaseManager implements TimeoutListener.Timeout {
 
 	/** Database file name */
 	private static final String DATABASE_FILE_NAME = "database.dat";
 
 	/** Database folder name */
-	private static final String DATABASE_FOLDER = "database";
+	private static final String DATABASE_FOLDER = "widebox-app" + getFileSeparator() + "database";
 
 	/** Database file path */
-	private static final String DATABASE_PATH = DATABASE_FOLDER + File.separator + DATABASE_FILE_NAME;
+	private static final String DATABASE_PATH = DATABASE_FOLDER + getFileSeparator() + DATABASE_FILE_NAME;
 
 	/** HashMap which contains all theaters available */
 	private Map<Integer, Seat[][]> database = new HashMap<>();
@@ -35,12 +37,15 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	DatabaseManager() throws IOException, ClassNotFoundException {
 		properties = new DatabaseProperties();
 		if(!isDatabaseCreated()) {
+			Debugger.log("Did not find the database");
 			createDatabaseFolder();
 			createDatabase();
 			writeDatabaseToFile();
 		} else {
+			Debugger.log("Database found");
 			restoreDatabaseFromFile();
 		}
+		Debugger.log("Database operation finished");
 		loadTheaters();
 		log = new Log();
 		timeoutManager = new TimeoutManager(this, properties.getTimeoutValue());
@@ -58,10 +63,12 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	}
 
 	private void createDatabaseFolder() {
+		Debugger.log("Creating the database folder");
 		new File(DATABASE_FOLDER).mkdir();
 	}
 
 	private void createDatabase() {
+		Debugger.log("Start creating database");
 		for(int theater = 0; theater < properties.getNumberOfTheaters(); theater++) {
 			database.put(theater, new Seat[properties.getRowsPerTheater()][properties.getColumnsPerTheater()]);
 			for(int row = 0; row < properties.getRowsPerTheater(); row++) {
@@ -74,6 +81,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	}
 
 	private void restoreDatabaseFromFile() throws IOException, ClassNotFoundException {
+		Debugger.log("Restoring database from file");
 		File databaseFile = new File(DATABASE_PATH);
 		FileInputStream fis = new FileInputStream(databaseFile);
 		ObjectInputStream ois = new ObjectInputStream(fis);
@@ -89,7 +97,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	}
 
 	private void writeDatabaseToFile() throws IOException {
-		Debugger.log("Returning all theaters");
+		Debugger.log("Start writing map to file");
 		File databaseFile = new File(DATABASE_PATH);
 		FileOutputStream fos = new FileOutputStream(databaseFile);
 		ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -97,6 +105,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		oos.flush();
 		oos.close();
 		fos.close();
+		Debugger.log("Finished writing map to file");
 	}
 
 	Map<String, Integer> getTheaters() {
@@ -110,7 +119,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	}
 
 	boolean reserveSeat(int theaterId, int clientId, int row, int column) {
-		Debugger.log("Reserving seat for clientId " + clientId);
+		Debugger.log("Reserving seat row: "+ row + " and column: " + column + " for clientId " + clientId);
 		Seat seat = database.get(theaterId)[row][column];
 		if(seat.isFree()) {
 			seat.reserveSeat(clientId);
@@ -121,7 +130,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	}
 
 	boolean acceptReservedSeat(int theaterId, int clientId, int row, int column) {
-		Debugger.log("Accepting reservation for clientId " + clientId);
+		Debugger.log("Accepting reservation seat row: "+ row + " and column: " + column + " for clientId " + clientId);
 		Seat seat = database.get(theaterId)[row][column];
 		if(seat.isReserved() && seat.getClientId() == clientId) {
 			seat.setOccupied();
@@ -132,7 +141,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	}
 
 	boolean cancelReservation(int theaterId, int clientId, int row, int column) {
-		Debugger.log("Canceling reservation for clientId " + clientId);
+		Debugger.log("Canceling reservation seat row: "+ row + " and column: " + column + " for clientId " + clientId);
 		Seat seat = database.get(theaterId)[row][column];
 		if(seat.isReserved() && seat.getClientId() == clientId) {
 			seat.freeSeat();

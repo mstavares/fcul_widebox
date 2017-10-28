@@ -1,9 +1,13 @@
 package database;
 
+import common.Utilities;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
+import static common.Utilities.getFileSeparator;
 
 class DatabaseProperties {
 
@@ -11,7 +15,8 @@ class DatabaseProperties {
     private static final String PROPERTIES_FILE_NAME = "server.properties";
 
     /** Properties file path */
-    private static final String PROPERTIES_FILE_PATH = "config/" + PROPERTIES_FILE_NAME;
+    private static final String PROPERTIES_FILE_PATH = "widebox-app"+ getFileSeparator()
+            +"config" + getFileSeparator() + PROPERTIES_FILE_NAME;
 
     /** Number of theatres key */
     private static final String NUMBER_OF_THEATERS_KEY = "NrTh";

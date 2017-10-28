@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="widebox-app" />
+        <module name="widebox-ear" />
+        <module name="widebox-web-client" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="fcul_widebox" target="1.8" />
+      <module name="widebox-app" target="1.8" />
+      <module name="widebox-ear" target="1.8" />
+      <module name="widebox-web-client" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

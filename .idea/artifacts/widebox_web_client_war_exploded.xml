@@ -1,0 +1,22 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="widebox-web-client:war exploded">
+    <output-path>$PROJECT_DIR$/widebox-web-client/target/widebox-web-client</output-path>
+    <root id="root">
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="widebox-web-client" />
+        </element>
+        <element id="directory" name="lib">
+          <element id="archive" name="widebox-app-1.0.jar">
+            <element id="module-output" name="widebox-app" />
+          </element>
+          <element id="library" level="project" name="Maven: com.google.code.gson:gson:2.8.2" />
+        </element>
+      </element>
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/widebox-web-client/target/widebox-web-client/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="javaee-facet-resources" facet="widebox-web-client/web/Web" />
+    </root>
+  </artifact>
+</component>

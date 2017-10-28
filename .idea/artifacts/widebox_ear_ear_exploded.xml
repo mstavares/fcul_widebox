@@ -1,0 +1,20 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-ear" name="widebox-ear:ear exploded">
+    <output-path>$PROJECT_DIR$/widebox-ear/target/widebox-ear-1.0</output-path>
+    <root id="root">
+      <element id="javaee-facet-resources" facet="widebox-ear/javaeeApplication/JavaEE" />
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/widebox-ear/target/widebox-ear-1.0/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="dir-copy" path="$PROJECT_DIR$/widebox-ear/src/main/application" />
+      <element id="directory" name="lib">
+        <element id="archive" name="widebox-app.jar">
+          <element id="module-output" name="widebox-app" />
+        </element>
+      </element>
+      <element id="archive" name="widebox-web-client.war">
+        <element id="artifact" artifact-name="widebox-web-client:war exploded" />
+      </element>
+    </root>
+  </artifact>
+</component>
