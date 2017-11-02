@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="ear" name="widebox-ear:ear">
-    <output-path>$PROJECT_DIR$/widebox-ear/target</output-path>
-    <root id="archive" name="widebox-ear-1.0.ear">
-      <element id="artifact" artifact-name="widebox-ear:ear exploded" />
-    </root>
-  </artifact>
-</component>

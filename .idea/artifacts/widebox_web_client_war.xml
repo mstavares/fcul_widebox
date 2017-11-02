@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="war" name="widebox-web-client:war">
-    <output-path>$PROJECT_DIR$/widebox-web-client/target</output-path>
-    <root id="archive" name="widebox-web-client.war">
-      <element id="artifact" artifact-name="widebox-web-client:war exploded" />
-    </root>
-  </artifact>
-</component>
