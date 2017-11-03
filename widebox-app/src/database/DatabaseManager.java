@@ -19,6 +19,12 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	/** Database file path */
 	private static final String DATABASE_PATH = DATABASE_FOLDER + getFileSeparator() + DATABASE_FILE_NAME;
 
+	/** Database backup file name */
+	private static final String DATABASE_BAK_FILE_NAME = "database.bak";
+	
+	/** Database backup file path */
+	private static final String DATABASE_BAK_PATH = DATABASE_FOLDER + getFileSeparator() + DATABASE_BAK_FILE_NAME;
+
 	/** HashMap which contains all theaters available */
 	private Map<Integer, Seat[][]> database = new HashMap<>();
 

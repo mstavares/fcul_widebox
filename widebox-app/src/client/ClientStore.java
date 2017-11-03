@@ -15,6 +15,7 @@ public class ClientStore {
 	
 	
 	private ClientStore() throws Exception{
+		//TODO multi server support
 		ServerManager serverManager = ServerManager.getInstance();
 		serverIp = serverManager.getAppServers().get(0).getIp();
 		serverPort = serverManager.getAppServers().get(0).getPort();

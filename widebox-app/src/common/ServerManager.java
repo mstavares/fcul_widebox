@@ -16,7 +16,7 @@ public class ServerManager {
 	
 	private ServerManager() throws Exception{
 		servers = new HashMap<String, List<Server>>();
-		//TODO fiz this messy code and the file
+		//TODO fix this messy code and the file
 		try {
 			Scanner sc = new Scanner(new File("config/servers.config") );
 			String s;
