@@ -5,7 +5,8 @@ import java.io.IOException;
 public class DatabaseMain {
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
-		WideBoxDatabaseImpl wbi = new WideBoxDatabaseImpl();
+		// WideBoxDatabaseImpl wbi = new WideBoxDatabaseImpl();
+		new DatabaseStarter();
 
 		/*
 		Seat[][] seats = wbi.getTheatersInfo(1);

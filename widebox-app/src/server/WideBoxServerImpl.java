@@ -22,7 +22,6 @@ import database.WideBoxDatabase;
 public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxServer, SeatTimeoutListener {
 
 	private static final long serialVersionUID = 6332295204270798892L;
-	private boolean online;
 	private WideBoxDatabase wideBoxDatabase;
 
 	/** Map to keep track of Seat Reservation Timeouts **/
@@ -85,7 +84,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 			Registry registry = LocateRegistry.getRegistry(host, port);
 			wideBoxDatabase = (WideBoxDatabase) registry.lookup("WideBoxDatabase");
 			registerService();
-			online = true;
 			randomGenerator = new Random();
 			Debugger.log("Application server is ready");
 		} catch (RemoteException | NotBoundException e) {
@@ -99,7 +97,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	
 	private void registerService() throws RemoteException {
 		try {
-			Registry registry = LocateRegistry.createRegistry(1090);
+			Registry registry = LocateRegistry.getRegistry(1090);
 			registry.bind("WideBoxServer", this);
 		} catch (RemoteException | AlreadyBoundException e) {
 			e.printStackTrace();
@@ -110,8 +108,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 	@Override
 	public Map<String, Integer> getTheaters() throws RemoteException{
-		if (!isOnline())
-			throw new RemoteException("Server is Offline");
 		Debugger.log("Got Request for Theaters");
 		return wideBoxDatabase.getTheaters();
 	}
@@ -119,8 +115,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 	@Override
 	public Seat[][] getTheaterInfo(int theaterId, int clientId) throws RemoteException{
-		if (!isOnline())
-			throw new RemoteException("Server is Offline");
 		Debugger.log("Got info request for theather " + theaterId + " from clientID " + clientId);
 		Seat[][] seats = wideBoxDatabase.getTheatersInfo(theaterId);
 		if(!clientHasReservation(clientId)) {
@@ -142,8 +136,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	
 	@Override
 	public boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
-		if (!isOnline())
-			throw new RemoteException("Server is Offline");
 		if (clientHasReservation(clientId)) {
 			cancelReservation(clientId);
 		}
@@ -161,8 +153,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 	@Override
 	public boolean acceptReservedSeat(int clientId) throws RemoteException{
-		if (!isOnline())
-			throw new RemoteException("Server is Offline");
 		Reservation reservation = reservationMap.get(clientId);
 		if(reservation == null) {
 			return false;
@@ -181,8 +171,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 	@Override
 	public boolean cancelReservation(int clientId) throws RemoteException{
-		if (!isOnline())
-			throw new RemoteException("Server is Offline");
 		Reservation reservation = reservationMap.get(clientId);
 		if(reservation == null) {
 			return false;
@@ -196,31 +184,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 			return true;
 		}
 		return false;
-	}
-
-	//TODO fazer estas 3 metodos usarem a nova interface
-	public boolean stopServer() throws RemoteException{
-		Debugger.log("Stopping server");
-		if (!online)
-			return false;
-		
-		online = false;
-		return true;
-	}
-
-
-	public boolean startServer() throws RemoteException{
-		Debugger.log("Starting server");
-		if (online)
-			return false;
-
-		online = true;
-		return true;
-	}
-	
-	
-	public boolean isOnline() throws RemoteException{
-		return this.online;
 	}
 
 	//TODO arranjar uma forma mais eficiente de fazer isto
@@ -249,6 +212,18 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		} catch (RemoteException e) {
 			e.printStackTrace();
 			System.out.println("Error handling seat reservation timeout");
+		}
+	}
+
+	// TODO Analisar isto como deve ser
+	public void unbind() {
+		try {
+			Registry registry = LocateRegistry.getRegistry(1090);
+			registry.unbind("WideBoxServer");
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (NotBoundException e) {
+			e.printStackTrace();
 		}
 	}
 

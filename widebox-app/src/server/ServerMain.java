@@ -7,9 +7,10 @@ import java.util.Scanner;
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException, RemoteException {
+		Scanner sc = new Scanner(System.in);
+		
 		String serverIp;
 		int serverPort;
-		Scanner sc = new Scanner(System.in);
 		
 		if (args.length >= 2){
 			serverIp = args[0];
@@ -22,9 +23,8 @@ public class ServerMain {
 			System.out.println("Insert the server port:");
 			serverPort = sc.nextInt();
 		}
-		
 		sc.close();
-		new WideBoxServerImpl(serverIp, serverPort);
+		new ServerStarter(serverIp, serverPort);
 	}
 
 }

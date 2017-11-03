@@ -2,6 +2,7 @@ package database;
 
 import java.io.IOException;
 import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -26,7 +27,7 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 
 	private void registerService() {
 		try {
-			Registry registry = LocateRegistry.createRegistry(1098);
+			Registry registry = LocateRegistry.getRegistry(1098);
 			registry.bind("WideBoxDatabase", this);
 			Debugger.log("Database server is ready");
 		} catch (RemoteException | AlreadyBoundException e) {
@@ -61,6 +62,17 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 	@Override
 	public synchronized boolean cancelReservation(int theaterId, int clientId, int row, int column) throws RemoteException{
 		return databaseManager.cancelReservation(theaterId, clientId, row, column);
+	}
+
+	//TODO analisar isto tambem
+	public void unbind() {
+		try {
+			Registry registry = LocateRegistry.getRegistry(1098);
+			registry.unbind("WideBoxDatabase");
+		} catch (RemoteException | NotBoundException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 }
