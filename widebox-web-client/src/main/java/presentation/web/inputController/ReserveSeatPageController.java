@@ -22,7 +22,16 @@ public class ReserveSeatPageController extends HttpServlet {
 		int row = Integer.parseInt(request.getParameter("row"));
 		int column = Integer.parseInt(request.getParameter("column"));
 		
-		WideBoxClient client = ClientStore.getClient(clientId);
+		ClientStore clientStore;
+		try {
+			clientStore = ClientStore.getInstance();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(-1);
+			return;
+		}
+		
+		WideBoxClient client = clientStore.getClient(clientId);
 		
 		boolean result = client.reserveSeat(theaterId, row, column);
 		

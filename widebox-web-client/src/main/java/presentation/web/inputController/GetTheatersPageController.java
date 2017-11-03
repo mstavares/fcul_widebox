@@ -21,7 +21,17 @@ public class GetTheatersPageController extends HttpServlet {
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		int clientId = Integer.parseInt(request.getParameter("clientId"));
-		WideBoxClient client = ClientStore.getClient(clientId);
+		
+		ClientStore clientStore;
+		try {
+			clientStore = ClientStore.getInstance();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(-1);
+			return;
+		}
+		
+		WideBoxClient client = clientStore.getClient(clientId);
 		
 		Map<String, Integer> theaters = client.getTheaters();
 		Gson gson = new Gson();

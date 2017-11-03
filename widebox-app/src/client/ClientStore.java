@@ -3,24 +3,44 @@ package client;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 
+import common.ServerManager;
+
 public class ClientStore {
 	
-	private static HashMap<Integer, WideBoxClient> clients = new HashMap<Integer, WideBoxClient>();
-	private static String serverIp = "localhost";
-	private static int serverPort = 1090;
+	private static ClientStore instance;
 	
-	public static WideBoxClient getClient(int id) throws RemoteException{
+	private static HashMap<Integer, WideBoxClient> clients = new HashMap<Integer, WideBoxClient>();
+	private static String serverIp;
+	private static int serverPort;
+	
+	
+	private ClientStore() throws Exception{
+		ServerManager serverManager = ServerManager.getInstance();
+		serverIp = serverManager.getAppServers().get(0).getIp();
+		serverPort = serverManager.getAppServers().get(0).getPort();
+	}
+	
+	
+	public static ClientStore getInstance() throws Exception{
+		//TODO possiveis problemas de concurrencia?
+		if (instance == null)
+			instance = new ClientStore();
+		return instance;
+	}
+	
+	
+	public WideBoxClient getClient(int id) throws RemoteException{
 		if (clients.containsKey(id) )
 			return clients.get(id);
 		else{
-			//TODO get ip and port from file
 			WideBoxClient client = new WideBoxClient(id, serverIp, serverPort);
 			clients.put(id, client);
 			return client;
 		}
 	}
 	
-	public static void removeClient(int id){
+	
+	public void removeClient(int id){
 		clients.remove(id);
 	}
 	
