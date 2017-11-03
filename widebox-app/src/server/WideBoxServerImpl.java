@@ -198,8 +198,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		return false;
 	}
 
-
-	@Override
+	//TODO fazer estas 3 metodos usarem a nova interface
 	public boolean stopServer() throws RemoteException{
 		Debugger.log("Stopping server");
 		if (!online)
@@ -210,7 +209,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	}
 
 
-	@Override
 	public boolean startServer() throws RemoteException{
 		Debugger.log("Starting server");
 		if (online)
@@ -221,7 +219,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	}
 	
 	
-	@Override
 	public boolean isOnline() throws RemoteException{
 		return this.online;
 	}

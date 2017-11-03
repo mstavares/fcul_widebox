@@ -17,11 +17,5 @@ public interface WideBoxServer extends Remote{
 	boolean acceptReservedSeat(int clientId) throws RemoteException;
 
 	boolean cancelReservation(int clientId) throws RemoteException;
-
-	boolean stopServer() throws RemoteException;
-
-	boolean startServer() throws RemoteException;
 	
-	boolean isOnline() throws RemoteException;
-
 }

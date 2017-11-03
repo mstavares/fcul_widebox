@@ -6,7 +6,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Scanner;
 
-import server.WideBoxServer;
+import common.ServerControl;
 
 public class FailureGenerator {
 
@@ -31,7 +31,7 @@ public class FailureGenerator {
 		try {
 			
 			Registry registry = LocateRegistry.getRegistry(serverIp, serverPort);
-			WideBoxServer wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
+			ServerControl wideBoxServer = (ServerControl) registry.lookup("WideBoxServer");
 			
 			boolean finished = false;
 			
