@@ -7,6 +7,7 @@ import java.rmi.registry.Registry;
 import java.util.Scanner;
 
 import common.InstanceControl;
+import common.InstanceManager;
 
 public class FailureGenerator {
 
@@ -15,6 +16,12 @@ public class FailureGenerator {
 		String serverIp;
 		int serverPort;
 		int op;
+		try {
+			InstanceManager.getInstance().getAllServers();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
 		if (args.length >= 2){
 			serverIp = args[0];

@@ -23,17 +23,15 @@ public class ReserveSeatPageController extends HttpServlet {
 		int column = Integer.parseInt(request.getParameter("column"));
 		
 		ClientStore clientStore;
+		String result;
+		
 		try {
 			clientStore = ClientStore.getInstance();
+			WideBoxClient client = clientStore.getClient(clientId);
+			result = Boolean.toString( client.reserveSeat(theaterId, row, column) );
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(-1);
-			return;
+			result = "error";
 		}
-		
-		WideBoxClient client = clientStore.getClient(clientId);
-		
-		boolean result = client.reserveSeat(theaterId, row, column);
 		
 		request.setAttribute("result", result);
 		request.getRequestDispatcher("result.jsp").forward(request, response);

@@ -20,18 +20,16 @@ public class AcceptReservedSeatPageController extends HttpServlet {
 		int clientId = Integer.parseInt(request.getParameter("clientId"));
 		
 		ClientStore clientStore;
+		String result;
 		try {
 			clientStore = ClientStore.getInstance();
+			WideBoxClient client = clientStore.getClient(clientId);
+			
+			result = Boolean.toString( client.acceptReservedSeat() );
+			clientStore.removeClient(clientId);
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(-1);
-			return;
+			result = "error";
 		}
-		
-		WideBoxClient client = clientStore.getClient(clientId);
-		
-		boolean result = client.acceptReservedSeat();
-		clientStore.removeClient(clientId);
 		
 		request.setAttribute("result", result);
 		request.getRequestDispatcher("result.jsp").forward(request, response);

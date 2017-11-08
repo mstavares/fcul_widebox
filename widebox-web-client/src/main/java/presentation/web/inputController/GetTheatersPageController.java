@@ -22,21 +22,19 @@ public class GetTheatersPageController extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		int clientId = Integer.parseInt(request.getParameter("clientId"));
 		
-		ClientStore clientStore;
+		String result;
 		try {
-			clientStore = ClientStore.getInstance();
+			ClientStore clientStore = ClientStore.getInstance();
+			WideBoxClient client = clientStore.getClient(clientId);
+			
+			Map<String, Integer> theaters = client.getTheaters();
+			Gson gson = new Gson();
+			result = gson.toJson(theaters);
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(-1);
-			return;
+			result = "error";
 		}
 		
-		WideBoxClient client = clientStore.getClient(clientId);
-		
-		Map<String, Integer> theaters = client.getTheaters();
-		Gson gson = new Gson();
-		
-		request.setAttribute("result", gson.toJson(theaters));
+		request.setAttribute("result", result);
 		request.getRequestDispatcher("result.jsp").forward(request, response);
 	}
 

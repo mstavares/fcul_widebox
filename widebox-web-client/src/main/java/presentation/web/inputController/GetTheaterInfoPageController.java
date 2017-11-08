@@ -23,21 +23,19 @@ public class GetTheaterInfoPageController extends HttpServlet {
 		int clientId = Integer.parseInt(request.getParameter("clientId"));
 		int theaterId = Integer.parseInt(request.getParameter("theaterId"));
 		
-		ClientStore clientStore;
+		String result;
 		try {
-			clientStore = ClientStore.getInstance();
+			ClientStore clientStore = ClientStore.getInstance();
+			WideBoxClient client = clientStore.getClient(clientId);
+			
+			Seat[][] seats = client.getTheaterInfo(theaterId);
+			Gson gson = new Gson();
+			result = gson.toJson(seats);
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(-1);
-			return;
+			result = "error";
 		}
 		
-		WideBoxClient client = clientStore.getClient(clientId);
-		
-		Seat[][] seats = client.getTheaterInfo(theaterId);
-		Gson gson = new Gson();
-		
-		request.setAttribute("result", gson.toJson(seats));
+		request.setAttribute("result", result);
 		request.getRequestDispatcher("result.jsp").forward(request, response);
 	}
 
