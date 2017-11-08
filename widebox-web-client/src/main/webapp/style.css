@@ -33,3 +33,63 @@ table {
 .center{
 	text-align: center;
 }
+
+.server-table{
+	width: 100%;
+	position: relative;
+}
+
+.server-type{
+	text-align: center;
+	border: 1px solid blue;
+	float: left;
+	position: relative;
+	padding: 5px;
+	margin: 5px;
+}
+
+.server{
+	margin-top: 5px;
+	padding: 2px;
+	text-align: left;
+	border: 1px solid green;
+	float: left;
+}
+
+
+.online {
+    color: green;
+}
+
+.offline {
+    color: red;
+}
+
+
+.menu{
+    height: 50px;
+    width: 100%;
+    position: relative;
+}
+
+.menu-item{
+    width: 33%;
+    height: 100%;
+    float: left;
+    text-align: center;
+    line-height: 50px;
+    background-color: #C30F0F;
+    color: #fff;
+}
+
+
+.menu-item:hover{
+    background-color: #fff;
+    color: #C30F0F;
+    transition: all 0.5s;
+}
+
+
+.menu-item-selected{
+    background-color: #820f0b;
+}

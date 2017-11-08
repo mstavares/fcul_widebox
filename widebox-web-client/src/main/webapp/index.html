@@ -4,14 +4,26 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<title>WideBox</title>
 		<link rel="stylesheet" href="style.css">
-		<script type="text/javascript" src="script.js"></script>
+		<script type="text/javascript" src="js/client.js"></script>
 	</head>
-	<body>		 
-		<div class="center" id="menu">
-			<form>
-				<input class="btn" type="submit" value="New Client" onclick="startClient(); return false;"></input>
-			</form>
-		</div>
+	<body>
+		<div class="menu">
+            <a href="index.html">
+                <div class="menu-item menu-item-selected">Client</div>
+            </a>
+            <a href="generator.html">
+                <div class="menu-item">Load Generator</div>
+            </a>
+            <a href="servers.html">
+                <div class="menu-item">Failure Generator</div>
+            </a>
+        </div>
+        <p></p>
+        
+		<form style="text-align:center;">
+			<input class="btn" type="submit" value="New Client" onclick="startClient(); return false;"></input>
+		</form>
+		
 		<p></p>
 		<div class="view" id="theaterList"></div>
 		
