@@ -1,6 +1,7 @@
 package common;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +35,10 @@ public class InstanceManager {
 			}
 			
 			sc.close();
+		}catch (FileNotFoundException e){
+			//TODO the folder/file needs to be on the bin folder of the web server for it to work, fix this somehow
+			System.out.println("File not found. Full path: " + new File("config/servers.config").getAbsolutePath() );
+			e.printStackTrace();
 		} catch (Exception e) {
 			throw new Exception("Error parsing servers.config file.");
 		}

@@ -13,7 +13,7 @@ import client.InstanceStore;
 import common.InstanceControl;
 
 
-@WebServlet("/inServerOnline")
+@WebServlet("/isServerOnline")
 public class IsServerOnlinePageController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
