@@ -16,8 +16,7 @@ class Log {
     private static final String LOG_FILE_NAME = "database.log";
 
     /** Database file path */
-    private static final String LOG_PATH = "widebox-app" + getFileSeparator() +
-            "database" + getFileSeparator() + LOG_FILE_NAME;
+    private static final String LOG_PATH = "database" + getFileSeparator() + LOG_FILE_NAME;
 
     /** String used to separate data on logs */
     private static final String SEP_STR = " ";

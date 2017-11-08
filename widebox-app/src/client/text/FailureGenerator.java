@@ -7,7 +7,6 @@ import java.rmi.registry.Registry;
 import java.util.Scanner;
 
 import common.InstanceControl;
-import common.InstanceManager;
 
 public class FailureGenerator {
 
@@ -16,12 +15,10 @@ public class FailureGenerator {
 		String serverIp;
 		int serverPort;
 		int op;
-		try {
-			InstanceManager.getInstance().getAllServers();
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		
+		System.out.println("****************************");
+		System.out.println("* Simple failure Generator *");
+		System.out.println("****************************");
 		
 		if (args.length >= 2){
 			serverIp = args[0];
@@ -38,7 +35,7 @@ public class FailureGenerator {
 		try {
 			
 			Registry registry = LocateRegistry.getRegistry(serverIp, serverPort);
-			InstanceControl wideBoxServer = (InstanceControl) registry.lookup("WideBoxServer");
+			InstanceControl wideBoxServer = (InstanceControl) registry.lookup("InstanceControl");
 			
 			boolean finished = false;
 			
@@ -46,6 +43,7 @@ public class FailureGenerator {
 				System.out.println("Choose an option:");
 				System.out.println("1- Start server.");
 				System.out.println("2- Stop server.");
+				System.out.println("3- Is the server online?.");
 				System.out.println("0- Exit.");
 				
 				op = sc.nextInt();
@@ -62,6 +60,12 @@ public class FailureGenerator {
 						System.out.println("Server stopped.");
 					else
 						System.out.println("Error stopping the server.");
+					break;
+				case 3:
+					if( wideBoxServer.isOnline() )
+						System.out.println("Server is online.");
+					else
+						System.out.println("Server is offline.");
 					break;
 				case 0:
 					finished = true;

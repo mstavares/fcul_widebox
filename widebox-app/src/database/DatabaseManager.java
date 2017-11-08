@@ -14,7 +14,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	private static final String DATABASE_FILE_NAME = "database.dat";
 
 	/** Database folder name */
-	private static final String DATABASE_FOLDER = "widebox-app" + getFileSeparator() + "database";
+	private static final String DATABASE_FOLDER = "database";
 
 	/** Database file path */
 	private static final String DATABASE_PATH = DATABASE_FOLDER + getFileSeparator() + DATABASE_FILE_NAME;

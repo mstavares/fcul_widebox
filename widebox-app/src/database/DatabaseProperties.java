@@ -13,8 +13,7 @@ class DatabaseProperties {
     private static final String PROPERTIES_FILE_NAME = "server.properties";
 
     /** Properties file path */
-    private static final String PROPERTIES_FILE_PATH = "widebox-app"+ getFileSeparator()
-            +"config" + getFileSeparator() + PROPERTIES_FILE_NAME;
+    private static final String PROPERTIES_FILE_PATH = "config" + getFileSeparator() + PROPERTIES_FILE_NAME;
 
     /** Number of theatres key */
     private static final String NUMBER_OF_THEATERS_KEY = "NrTh";
