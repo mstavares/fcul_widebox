@@ -9,13 +9,14 @@ public class ClientStore {
 	
 	private static ClientStore instance;
 	
-	private static HashMap<Integer, WideBoxClient> clients = new HashMap<Integer, WideBoxClient>();
+	private static HashMap<Integer, WideBoxClient> clients;
 	private static String serverIp;
 	private static int serverPort;
 	
 	
 	private ClientStore() throws Exception{
 		//TODO multi server support
+		clients = new HashMap<Integer, WideBoxClient>();
 		InstanceManager serverManager = InstanceManager.getInstance();
 		serverIp = serverManager.getAppServers().get(0).getIp();
 		serverPort = serverManager.getAppServers().get(0).getPort();

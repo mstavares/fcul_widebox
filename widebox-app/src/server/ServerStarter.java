@@ -32,7 +32,7 @@ public class ServerStarter extends UnicastRemoteObject implements InstanceContro
 	private void startRegistry() throws RemoteException {
 		try {
 			Registry registry = LocateRegistry.createRegistry(1090);
-			registry.bind("ServerStarter", this);
+			registry.bind("InstanceControl", this);
 		} catch (RemoteException | AlreadyBoundException e) {
 			e.printStackTrace();
 			throw new RemoteException("Error creating registry");

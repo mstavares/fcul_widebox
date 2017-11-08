@@ -29,7 +29,7 @@ public class DatabaseStarter extends UnicastRemoteObject implements InstanceCont
 	private void startRegistry() {
 		try {
 			Registry registry = LocateRegistry.createRegistry(1098);
-			registry.bind("DatabaseStarter", this);
+			registry.bind("InstanceControl", this);
 		} catch (RemoteException | AlreadyBoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
