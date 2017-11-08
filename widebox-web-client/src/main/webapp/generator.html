@@ -1,0 +1,47 @@
+ <!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>WideBox Load Generator</title>
+		<link rel="stylesheet" href="style.css">
+		<script type="text/javascript" src="js/client.js"></script>
+	</head>
+	<body>
+		<div class="menu">
+            <a href="index.html">
+                <div class="menu-item">Client</div>
+            </a>
+            <a href="generator.html">
+                <div class="menu-item menu-item-selected">Load Generator</div>
+            </a>
+            <a href="servers.html">
+                <div class="menu-item">Failure Generator</div>
+            </a>
+        </div>
+        <p></p>
+        
+		<form style="text-align:center;">
+			<table>
+				<tr>
+					<td>Number of clients per second:</td>
+					<td><input type="number" name="nClients" value=1></input></td>
+				</tr>
+				<tr>
+					<td>Number of theaters:</td>
+					<td><input type="number" name="nTeathers" value=1></input></td>
+				</tr>
+				<tr>
+					<td>Reserve without confirming:</td>
+					<td><input type="radio" name="confirm" value="false" /></td>
+				</tr>
+				<tr>
+					<td>Reserve and confirm:</td>
+					<td><input type="radio" name="confirm" value="true" checked="checked" /></td>
+				</tr>
+			</table>
+			<br /><input class="btn" type="submit" value="Start" onclick="startGenerator(); return false;"></input>
+		</form>
+		
+		<div class="view" id="graph"></div>
+	</body>
+</html>
