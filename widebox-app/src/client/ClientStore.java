@@ -1,7 +1,7 @@
 package client;
 
 import java.rmi.RemoteException;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import common.InstanceManager;
 
@@ -9,14 +9,14 @@ public class ClientStore {
 	
 	private static ClientStore instance;
 	
-	private static HashMap<Integer, WideBoxClient> clients;
-	private static String serverIp;
-	private static int serverPort;
+	private ConcurrentHashMap<Integer, WideBoxClient> clients;
+	private String serverIp;
+	private int serverPort;
 	
 	
 	private ClientStore() throws Exception{
 		//TODO multi server support
-		clients = new HashMap<Integer, WideBoxClient>();
+		clients = new ConcurrentHashMap<Integer, WideBoxClient>();
 		InstanceManager serverManager = InstanceManager.getInstance();
 		serverIp = serverManager.getAppServers().get(0).getIp();
 		serverPort = serverManager.getAppServers().get(0).getPort();
