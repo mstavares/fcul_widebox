@@ -4,7 +4,8 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<title>WideBox Load Generator</title>
 		<link rel="stylesheet" href="style.css">
-		<script type="text/javascript" src="js/client.js"></script>
+		<script type="text/javascript" src="js/Chart.min.js"></script>
+		<script type="text/javascript" src="js/generator.js"></script>
 	</head>
 	<body>
 		<div class="menu">
@@ -39,9 +40,12 @@
 					<td><input type="radio" name="confirm" value="true" checked="checked" /></td>
 				</tr>
 			</table>
-			<br /><input class="btn" type="submit" value="Start" onclick="startGenerator(); return false;"></input>
+			<br /><input class="btn" type="submit" value="Start Generator" onclick="startGenerator(); return false;"></input>
+			<input class="btn" type="submit" value="Stop Generator" onclick="stopGenerator(); return false;"></input>
 		</form>
 		
-		<div class="view" id="graph"></div>
+		<div class="graph">
+			<canvas id="canvas"></canvas>
+		</div>
 	</body>
 </html>

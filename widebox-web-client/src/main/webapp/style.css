@@ -93,3 +93,14 @@ table {
 .menu-item-selected{
     background-color: #820f0b;
 }
+
+
+.graph{
+	width: 90%;
+	text-align: center;
+}
+
+#canvas {
+    display: block;
+    margin: 0 auto;
+}
