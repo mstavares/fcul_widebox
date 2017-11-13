@@ -33,10 +33,13 @@ var generate = true;
 var second = 0;
 
 function startGenerator(){
-    var numClients = document.getElementsByName("nClients")[0].value;
-    var numTheaters = document.getElementsByName("nTeathers")[0].value;
-    var confirm = document.getElementsByName("confirm")[0].value;
-
+	var numClients = document.getElementsByName("nClients")[0].value;
+	var numTheaters = document.getElementsByName("nTeathers")[0].value;
+	var confirm = document.getElementsByName("confirm")[0].value;
+	
+	document.getElementById("startButton").disabled = true;
+	document.getElementById("stopButton").disabled = false;
+	
     ajax.onreadystatechange = function () {
         var html = ajax.responseText;
         if (ajax.readyState == 4 && ajax.status == 200) {
@@ -130,4 +133,6 @@ window.onload = function() {
 
 function stopGenerator() {
 	generate = false;
+	document.getElementById("startButton").disabled = false;
+	document.getElementById("stopButton").disabled = true;
 }
