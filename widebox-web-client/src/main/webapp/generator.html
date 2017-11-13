@@ -25,11 +25,11 @@
 			<table>
 				<tr>
 					<td>Number of clients per second:</td>
-					<td><input type="number" name="nClients" value=1></input></td>
+					<td><input type="number" name="nClients" value=1 min="1"></input></td>
 				</tr>
 				<tr>
 					<td>Number of theaters:</td>
-					<td><input type="number" name="nTeathers" value=1></input></td>
+					<td><input type="number" name="nTeathers" value=1 min="1"></input></td>
 				</tr>
 				<tr>
 					<td>Reserve without confirming:</td>
@@ -46,6 +46,7 @@
 		
 		<div class="graph">
 			<canvas id="canvas"></canvas>
+			<canvas id="canvas2"></canvas>
 		</div>
 	</body>
 </html>

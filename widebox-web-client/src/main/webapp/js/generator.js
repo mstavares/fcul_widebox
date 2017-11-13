@@ -53,6 +53,16 @@ function startGenerator(){
                 config.data.datasets[1].data.push(content.previousRequests.length);
                 
                 window.myLine.update();
+                
+                for (var time in content.requestsCompleted) {
+                    barChart.data.datasets[0].data[ getBin(time) ]++;
+                }
+
+                for (var time in content.previousRequests) {
+                    barChart.data.datasets[0].data[ getBin(time) ]++;
+                }
+
+                window.myBar.update();
             }
             
             if (generate)
@@ -80,7 +90,7 @@ var config = {
     type: 'line',
     data: {
         datasets: [{
-            label: "Clients finished",
+            label: "Clients finished within the second",
             backgroundColor: window.chartColors.red,
             borderColor: window.chartColors.red,
             fill: false
@@ -127,6 +137,9 @@ var config = {
 window.onload = function() {
     var ctx = document.getElementById("canvas").getContext("2d");
     window.myLine = new Chart(ctx, config);
+
+    var bar = document.getElementById("canvas2").getContext("2d");
+    window.myBar = new Chart(bar, barChart);
 };
 
 
@@ -136,3 +149,58 @@ function stopGenerator() {
 	document.getElementById("startButton").disabled = false;
 	document.getElementById("stopButton").disabled = true;
 }
+
+
+function getBin(time){
+    var result = Math.ceil(time/50) - 1;
+    if (result > 20)
+        return 20;
+    else
+        return result;
+}
+
+
+
+var barChart = {
+    type: 'bar',
+    data: {
+        labels: ["]0-0.1]", "]0.1-0.2]", "]0.2-0.3]", "]0.3-0.4]", "]0.4-0.5]", "]0.5-0.6]", "]0.6-0.7]", "]0.7-0.8]", "]0.8-0.9]", "]0.9-1.0]", "]1.0-1.1]", "]1.1-1.2]", "]1.2-1.3]", "]1.3-1.4]", "]1.4-1.5]", "]1.5-1.6]", "]1.6-1.7]", "]1.7-1.8]", "]1.8-1.9]", "]1.9-2.0]", "2.0+"],
+        datasets: [{
+            label: 'Time to serve Clients',
+            backgroundColor: window.chartColors.yellow,
+            borderColor: window.chartColors.red,
+            borderWidth: 1,
+            data: [
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ]
+        }]
+
+    },
+    options: {
+        responsive: true,
+        legend: {
+            position: 'top',
+        },
+        scales: {
+            xAxes: [{
+                barPercentage: 1.0,
+                categoryPercentage: 1.0,
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Time (seconds)'
+                }
+            }],
+            yAxes: [{
+                display: true,
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Number of clients'
+                }
+            }]
+        },
+        title: {
+            display: false,
+            text: 'Time to Serve Client'
+        }
+    }
+};
