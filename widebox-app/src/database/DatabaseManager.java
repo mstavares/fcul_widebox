@@ -96,12 +96,12 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		fis.close();
 		Debugger.log("Restored Database from file sucessfully");
 	}
-
+	/*
 	private Map<Integer,Boolean[][]> updateDatabaseFromLog(HashMap<Integer, Theater> database) {
 		//TODO
 		return null;
 	}
-
+	*/
 	private void writeDatabaseToFile() throws IOException {
 		Debugger.log("Start writing map to file");
 		File databaseFile = new File(DATABASE_PATH);

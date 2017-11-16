@@ -152,7 +152,7 @@ function stopGenerator() {
 
 
 function getBin(time){
-    var result = Math.ceil(time/50) - 1;
+    var result = Math.ceil(time/100) - 1;
     if (result > 20)
         return 20;
     else

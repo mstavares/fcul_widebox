@@ -8,11 +8,12 @@ import java.util.HashMap;
 
 import common.InstanceControl;
 
+/**
+ * A singleton that creates and stores InstanceControls of the given servers.
+ */
 public class InstanceStore {
 	
-	private static InstanceStore instance;
-	
-	private static HashMap<String, InstanceControl> instances;
+	private HashMap<String, InstanceControl> instances;
 	
 	
 	private InstanceStore() {
@@ -20,11 +21,13 @@ public class InstanceStore {
 	}
 	
 	
+	private static class StaticHolder {
+		static final InstanceStore INSTANCE = new InstanceStore();
+	}
+    
+	
 	public static InstanceStore getInstance(){
-		//TODO possiveis problemas de concurrencia?
-		if (instance == null)
-			instance = new InstanceStore();
-		return instance;
+		return StaticHolder.INSTANCE;
 	}
 	
 	
