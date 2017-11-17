@@ -132,27 +132,26 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	}
 
 	
-	// TODO cancelar reserva quando cliente pede nova reserva
+	// TODO Deixa de se ligar à DB
 	
 	@Override
-	public boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
+	public synchronized boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
 		if (clientHasReservation(clientId)) {
 			cancelReservation(clientId);
 		}
-		if (wideBoxDatabase.reserveSeat(theaterId, clientId, row, column)){
-			Debugger.log("Reserving seat for clientID " + clientId);
-			reservationMap.put(clientId, new Reservation(theaterId, new Place(row, column)));
-			// Este construtor tambem está horrivel, mas por agora serve
-			TimeoutManager timeout = new TimeoutManager(this, properties.getTimeoutValue(), clientId);
-			timeout.runOnlyOnce();
-			timeoutMap.put(clientId, timeout);
-			return true;
-		}
-		return false;
+	
+		Debugger.log("Reserving seat for clientID " + clientId);
+		reservationMap.put(clientId, new Reservation(theaterId, new Place(row, column)));
+		// Este construtor tambem está horrivel, mas por agora serve
+		TimeoutManager timeout = new TimeoutManager(this, properties.getTimeoutValue(), clientId);
+		timeout.runOnlyOnce();
+		timeoutMap.put(clientId, timeout);
+		return true;
 	}
 
+	// TODO necessário alterar a DB para não verificar se o lugar está reservado
 	@Override
-	public boolean acceptReservedSeat(int clientId) throws RemoteException{
+	public synchronized boolean acceptReservedSeat(int clientId) throws RemoteException{
 		Reservation reservation = reservationMap.get(clientId);
 		if(reservation == null) {
 			return false;
@@ -168,22 +167,19 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		return false;
 	}
 
-
+	// TODO Deixa de se ligar à DB
 	@Override
-	public boolean cancelReservation(int clientId) throws RemoteException{
+	public synchronized boolean cancelReservation(int clientId) throws RemoteException{
 		Reservation reservation = reservationMap.get(clientId);
 		if(reservation == null) {
 			return false;
 		}
-		if (wideBoxDatabase.cancelReservation(reservation.getTheaterId(), clientId, reservation.getPlace().getRow(), reservation.getPlace().getColumn())) {
-			TimeoutManager timeout = timeoutMap.get(clientId);
-			timeout.stop();
-			timeoutMap.remove(clientId);
-			reservationMap.remove(clientId);
-			Debugger.log("Canceled reservation for clientId " + clientId);
-			return true;
-		}
-		return false;
+		TimeoutManager timeout = timeoutMap.get(clientId);
+		timeout.stop();
+		timeoutMap.remove(clientId);
+		reservationMap.remove(clientId);
+		Debugger.log("Canceled reservation for clientId " + clientId);
+		return true;
 	}
 
 	//TODO arranjar uma forma mais eficiente de fazer isto

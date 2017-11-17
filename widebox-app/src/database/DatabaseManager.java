@@ -124,6 +124,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		return database.get(theaterId);
 	}
 
+	/*
 	boolean reserveSeat(int theaterId, int clientId, int row, int column) {
 		Debugger.log("Reserving seat row: "+ row + " and column: " + column + " for clientId " + clientId);
 		Seat seat = database.get(theaterId)[row][column];
@@ -134,7 +135,10 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		}
 		return false;
 	}
+	*/
 
+	// Implementação antiga, aqui para legacy effects
+	/*
 	boolean acceptReservedSeat(int theaterId, int clientId, int row, int column) {
 		Debugger.log("Accepting reservation seat row: "+ row + " and column: " + column + " for clientId " + clientId);
 		Seat seat = database.get(theaterId)[row][column];
@@ -145,7 +149,19 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		}
 		return false;
 	}
+	*/
+	boolean acceptReservedSeat(int theaterId, int clientId, int row, int column) {
+		Debugger.log("Accepting reservation seat row: "+ row + " and column: " + column + " for clientId " + clientId);
+		Seat seat = database.get(theaterId)[row][column];
+		if(seat.isFree()) {
+			seat.setOccupied();
+			log.appendAcceptAction(theaterId, clientId, row, column);
+			return true;
+		}
+		return false;
+	}
 
+	/*
 	boolean cancelReservation(int theaterId, int clientId, int row, int column) {
 		Debugger.log("Canceling reservation seat row: "+ row + " and column: " + column + " for clientId " + clientId);
 		Seat seat = database.get(theaterId)[row][column];
@@ -156,6 +172,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		}
 		return false;
 	}
+	*/
 
 	@Override
 	public void timeout() {
