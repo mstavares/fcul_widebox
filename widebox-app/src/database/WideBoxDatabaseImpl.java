@@ -46,24 +46,25 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 		return databaseManager.getTheaterInfo(theaterId);
 	}
 	
-	
+	/*
 	@Override
 	public synchronized boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
 		return databaseManager.reserveSeat(theaterId, clientId, row, column);
 	}
-	
+	*/
 	
 	@Override
 	public synchronized boolean acceptReservedSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
 		return databaseManager.acceptReservedSeat(theaterId, clientId, row, column);
 	}
 	
-	
+	/*
 	@Override
 	public synchronized boolean cancelReservation(int theaterId, int clientId, int row, int column) throws RemoteException{
 		return databaseManager.cancelReservation(theaterId, clientId, row, column);
 	}
-
+	 */
+	
 	//TODO analisar isto tambem
 	public void unbind() {
 		try {
