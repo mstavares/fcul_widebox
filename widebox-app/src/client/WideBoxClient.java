@@ -4,24 +4,38 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.HashMap;
 import java.util.Map;
 
+import common.InstanceSelector;
+import common.InstanceType;
 import common.Seat;
+import common.Server;
 import server.WideBoxServer;
 
 public class WideBoxClient {
 
 
 	private int id;
-	private WideBoxServer wideBoxServer;
+	private static final InstanceType INSTANCE_TYPE = InstanceType.APP;
+	private InstanceSelector instanceSelector;
+	private HashMap<Server, WideBoxServer> servers;
+	private WideBoxServer currentReservation;
 
 	public WideBoxClient(int clientId) throws RemoteException{
 		id = clientId;
+		servers = new HashMap<Server, WideBoxServer>();
 
 		try {
-			Registry registry = LocateRegistry.getRegistry(serverHost, serverPort);
-			wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
-		} catch (RemoteException | NotBoundException e) {
+			instanceSelector = InstanceSelector.getInstance();
+			Server initialServer = instanceSelector.getInstanceServingTheater(1, INSTANCE_TYPE);
+			//TODO connect to a different server for each client?
+			
+			Registry registry = LocateRegistry.getRegistry(initialServer.getIp(), initialServer.getPort() );
+			WideBoxServer wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
+			
+			servers.put(initialServer, wideBoxServer);
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RemoteException("Error connecting to the server.");
 		}
@@ -29,27 +43,57 @@ public class WideBoxClient {
 	}
 
 	public Map<String, Integer> getTheaters() throws RemoteException{
-		return wideBoxServer.getTheaters();
+		return servers.get(servers.keySet().iterator().next() ).getTheaters();
 	}
 
 
 	public Seat[][] getTheaterInfo(int theaterId) throws RemoteException{
-		return wideBoxServer.getTheaterInfo(theaterId, id);
+		currentReservation = getServerServing(theaterId);
+		return currentReservation.getTheaterInfo(theaterId, id);
 	}
 
 
 	public boolean reserveSeat(int theaterId, int row, int column) throws RemoteException{
-		return wideBoxServer.reserveSeat(theaterId, id, row, column);
+		currentReservation = getServerServing(theaterId);
+		return currentReservation.reserveSeat(theaterId, id, row, column);
 	}
 
 
 	public boolean acceptReservedSeat() throws RemoteException{
-		return wideBoxServer.acceptReservedSeat(id);
+		if (currentReservation != null)
+			return currentReservation.acceptReservedSeat(id);
+		else
+			throw new RemoteException("There's no current reservation.");
 	}
 
 
 	public boolean cancelReservation() throws RemoteException{
-		return wideBoxServer.cancelReservation(id);
+		if (currentReservation != null)
+			return currentReservation.cancelReservation(id);
+		else
+			throw new RemoteException("There's no current reservation.");
+	}
+	
+	
+	private WideBoxServer getServerServing(int theaterId) throws RemoteException{
+		Server s = instanceSelector.getInstanceServingTheater(theaterId, INSTANCE_TYPE);
+		WideBoxServer wideBoxServer;
+		
+		if (servers.containsKey(s))
+			wideBoxServer = servers.get(s);
+		else{
+			try{
+				Registry registry = LocateRegistry.getRegistry(s.getIp(), s.getPort() );
+				wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
+				servers.put(s, wideBoxServer);
+			}catch(RemoteException | NotBoundException e){
+				e.printStackTrace();
+				throw new RemoteException("Error connecting to the server.");
+			}
+
+		}
+		
+		return wideBoxServer;
 	}
 
 }
