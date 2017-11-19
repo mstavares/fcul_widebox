@@ -9,6 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import common.InstanceManager;
+import common.InstanceType;
 
 public class ClientWorker {
 	
@@ -26,8 +27,8 @@ public class ClientWorker {
 	private ClientWorker() throws Exception{
 		//TODO multi server support
 		InstanceManager serverManager = InstanceManager.getInstance();
-		serverIp = serverManager.getAppServers().get(0).getIp();
-		serverPort = serverManager.getAppServers().get(0).getPort();
+		serverIp = serverManager.getServers(InstanceType.APP).get(0).getIp();
+		serverPort = serverManager.getServers(InstanceType.APP).get(0).getPort();
 		currentClientId = new AtomicInteger(0);
 		failedClients = new AtomicInteger(0);
 		finishedClients = Collections.synchronizedList(new ArrayList<Long>() );

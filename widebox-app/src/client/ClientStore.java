@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import common.InstanceManager;
+import common.InstanceType;
 
 public class ClientStore {
 	
@@ -18,8 +19,8 @@ public class ClientStore {
 		//TODO multi server support
 		clients = new ConcurrentHashMap<Integer, WideBoxClient>();
 		InstanceManager serverManager = InstanceManager.getInstance();
-		serverIp = serverManager.getAppServers().get(0).getIp();
-		serverPort = serverManager.getAppServers().get(0).getPort();
+		serverIp = serverManager.getServers(InstanceType.APP).get(0).getIp();
+		serverPort = serverManager.getServers(InstanceType.APP).get(0).getPort();
 	}
 	
 	

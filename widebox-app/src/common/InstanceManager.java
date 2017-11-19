@@ -12,11 +12,11 @@ public class InstanceManager {
 	
 	private static InstanceManager instance;
 	
-	private Map<String, List<Server>> servers;
+	private Map<InstanceType, List<Server>> servers;
 	
 	
 	private InstanceManager() throws Exception{
-		servers = new HashMap<String, List<Server>>();
+		servers = new HashMap<InstanceType, List<Server>>();
 		//TODO fix this messy code and the file
 		try {
 			Scanner sc = new Scanner(new File("config/servers.config") );
@@ -31,7 +31,7 @@ public class InstanceManager {
 					serverList.add(server);
 				}
 				
-				servers.put(serverType, serverList);
+				servers.put(InstanceType.valueOf(serverType), serverList);
 			}
 			
 			sc.close();
@@ -52,18 +52,13 @@ public class InstanceManager {
 	}
 	
 	
-	public Map<String, List<Server>> getAllServers() throws Exception{
+	public Map<InstanceType, List<Server>> getAllServers(){
 		return servers;
 	}
 	
 	
-	public List<Server> getAppServers() throws Exception{
-		return servers.get("AppServer");
-	}
-	
-	
-	public List<Server> getDatabaseServers() throws Exception{
-		return servers.get("DatabaseServer");
+	public List<Server> getServers(InstanceType type){
+		return servers.get( type.getFileName() );
 	}
 	
 }
