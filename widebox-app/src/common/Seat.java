@@ -45,8 +45,9 @@ public class Seat implements Serializable {
         this.clientId = clientId;
     }
 
-    public void setOccupied() {
+    public void setOccupied(int clientId) {
         seat = SeatType.OCCUPIED;
+        this.clientId = clientId;
     }
 
     public void setSelf() {
