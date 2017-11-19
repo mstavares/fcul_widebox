@@ -40,6 +40,7 @@ public class InstanceManager {
 			System.out.println("File not found. Full path: " + new File("config/servers.config").getAbsolutePath() );
 			e.printStackTrace();
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new Exception("Error parsing servers.config file.");
 		}
 	}
@@ -58,7 +59,7 @@ public class InstanceManager {
 	
 	
 	public List<Server> getServers(InstanceType type){
-		return servers.get( type.getFileName() );
+		return servers.get(type);
 	}
 	
 }
