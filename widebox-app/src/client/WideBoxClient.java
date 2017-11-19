@@ -15,7 +15,7 @@ public class WideBoxClient {
 	private int id;
 	private WideBoxServer wideBoxServer;
 
-	public WideBoxClient(int clientId, String serverHost, int serverPort) throws RemoteException{
+	public WideBoxClient(int clientId) throws RemoteException{
 		id = clientId;
 
 		try {

@@ -8,27 +8,15 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import common.InstanceManager;
-import common.InstanceType;
-
 public class ClientWorker {
 	
-	private static ClientWorker instance;
-	
 	private final int NRTH;
-	private String serverIp;
-	private int serverPort;
 	private AtomicInteger currentClientId;
 	private AtomicInteger failedClients;
 	private List<Long> finishedClients;
 	private List<Long> finishedLateClients;
-	//ConcurrentLinkedQueue invés de List, maybe?
 	
-	private ClientWorker() throws Exception{
-		//TODO multi server support
-		InstanceManager serverManager = InstanceManager.getInstance();
-		serverIp = serverManager.getServers(InstanceType.APP).get(0).getIp();
-		serverPort = serverManager.getServers(InstanceType.APP).get(0).getPort();
+	private ClientWorker(){
 		currentClientId = new AtomicInteger(0);
 		failedClients = new AtomicInteger(0);
 		finishedClients = Collections.synchronizedList(new ArrayList<Long>() );
@@ -37,11 +25,13 @@ public class ClientWorker {
 	}
 	
 	
-	public static ClientWorker getInstance() throws Exception{
-		//TODO possiveis problemas de concurrencia?
-		if (instance == null)
-			instance = new ClientWorker();
-		return instance;
+	private static class StaticHolder {
+		static final ClientWorker INSTANCE = new ClientWorker();
+	}
+    
+	
+	public static ClientWorker getInstance(){
+		return StaticHolder.INSTANCE;
 	}
 	
 	
@@ -119,7 +109,7 @@ public class ClientWorker {
 			long initialTime = System.currentTimeMillis();
 			try {
 				int clientId = currentClientId.getAndIncrement();
-				WideBoxClient client = new WideBoxClient(clientId, serverIp, serverPort);
+				WideBoxClient client = new WideBoxClient(clientId);
 				client.getTheaterInfo( theaters[ ThreadLocalRandom.current().nextInt(theaters.length) ] );
 				//TODO what if it's full?
 				

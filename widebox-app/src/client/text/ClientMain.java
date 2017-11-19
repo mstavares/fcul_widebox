@@ -21,25 +21,11 @@ public class ClientMain {
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
 		Random rd = new Random();
-		String serverIp;
-		int serverPort;
 		int op;
 		int clientId = rd.nextInt(10000); //TODO get this from the properties file
-		
-		if (args.length >= 2){
-			serverIp = args[0];
-			serverPort = Integer.parseInt(args[1]);
-		}else{
-			System.out.println("Couldn't get ip and port arguments.");
-			System.out.println("Insert the server IP:");
-			serverIp = sc.nextLine();
-
-			System.out.println("Insert the server port:");
-			serverPort = sc.nextInt();
-		}
 
 		try {
-			WideBoxClient client = new WideBoxClient(clientId, serverIp, serverPort);
+			WideBoxClient client = new WideBoxClient(clientId);
 			Debugger.log("Got Remote Object");
 			Map<String, Integer> theaterList = client.getTheaters();
 

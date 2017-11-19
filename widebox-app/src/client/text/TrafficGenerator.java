@@ -11,28 +11,13 @@ public class TrafficGenerator {
 
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
-		String serverIp;
-		int serverPort;
-		int numClients;
-		
-		if (args.length >= 2){
-			serverIp = args[0];
-			serverPort = Integer.parseInt(args[1]);
-		}else{
-			System.out.println("Couldn't get ip and port arguments.");
-			System.out.println("Insert the server IP:");
-			serverIp = sc.nextLine();
-
-			System.out.println("Insert the server port:");
-			serverPort = sc.nextInt();
-		}
-		
+		int numClients;		
 		
 		System.out.println("Insert the number of clients to use:");
 		numClients = sc.nextInt();
 		
 		for (int clientId = 1; clientId <= numClients; clientId++){
-			new Thread(new ClientRunnable(clientId, serverIp, serverPort)).start();
+			new Thread(new ClientRunnable(clientId)).start();
 		}
 		
 		sc.close();
@@ -42,20 +27,16 @@ public class TrafficGenerator {
 	private static class ClientRunnable implements Runnable {
 		
 		private int clientId;
-		private String serverIp;
-		private int serverPort;
 
-		public ClientRunnable(int clientId, String serverIp, int serverPort) {
+		public ClientRunnable(int clientId) {
 			this.clientId = clientId;
-			this.serverIp = serverIp;
-			this.serverPort = serverPort;
 		}
 
 		@Override
 		public void run() {
 			
 			try {
-				WideBoxClient client = new WideBoxClient(clientId, serverIp, serverPort);
+				WideBoxClient client = new WideBoxClient(clientId);
 				
 				Map<String, Integer>  theaterList = client.getTheaters();
 				
