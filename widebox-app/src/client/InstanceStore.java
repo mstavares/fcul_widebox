@@ -1,4 +1,4 @@
-package common;
+package client;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
