@@ -37,7 +37,6 @@ public class InstanceManager {
 			
 			sc.close();
 		}catch (FileNotFoundException e){
-			//TODO the folder/file needs to be on the bin folder of the web server for it to work, fix this somehow
 			System.out.println("servers.config file not found.\n Looking for it in this path: " + new File("config/servers.config").getAbsolutePath() );
 			System.exit(-1);
 		} catch (Exception e) {

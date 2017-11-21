@@ -121,7 +121,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	@Override
 	public Map<String, Integer> getTheaters() throws RemoteException{
 		Debugger.log("Got Request for Theaters");
-		return database.get(instanceSelector.getInstanceServingTheater(0, InstanceType.DATABASE)).getTheaters();
+		return database.get(instanceSelector.getRandomInstance(InstanceType.DATABASE)).getTheaters();
 	}
 
 
@@ -144,8 +144,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	}
 
 	
-	// TODO Deixa de se ligar à DB
-	
 	@Override
 	public synchronized boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
 		if (clientHasReservation(clientId)) {
@@ -160,8 +158,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		timeoutMap.put(clientId, timeout);
 		return true;
 	}
-
-	// TODO necessário alterar a DB para não verificar se o lugar está reservado
+	
 	@Override
 	public synchronized boolean acceptReservedSeat(int clientId) throws RemoteException{
 		Reservation reservation = reservationMap.get(clientId);
@@ -179,8 +176,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		}
 		return false;
 	}
-
-	// TODO Deixa de se ligar à DB
+	
 	@Override
 	public synchronized boolean cancelReservation(int clientId) throws RemoteException{
 		Reservation reservation = reservationMap.get(clientId);

@@ -1,6 +1,7 @@
 package common;
 
 import java.util.List;
+import java.util.Random;
 
 /**
  * Singleton used to get the details of the instance of a server serving a theater.
@@ -32,6 +33,18 @@ public class InstanceSelector {
 		
 		//TODO tornar isto sequencial?
 		return servers.get( theaterId % servers.size() );
+	}
+	
+	
+	
+	/**
+	 * Returns a random Server object of the instanceType given.
+	 */
+	public Server getRandomInstance(InstanceType instanceType){
+		List<Server> servers = instanceManager.getServers(instanceType);
+		Random rd = new Random();
+		
+		return servers.get( rd.nextInt(servers.size()) );
 	}
 	
 }

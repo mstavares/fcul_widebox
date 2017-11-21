@@ -28,8 +28,7 @@ public class WideBoxClient {
 
 		try {
 			instanceSelector = InstanceSelector.getInstance();
-			Server initialServer = instanceSelector.getInstanceServingTheater(1, INSTANCE_TYPE);
-			//TODO connect to a different server for each client?
+			Server initialServer = instanceSelector.getRandomInstance(INSTANCE_TYPE);
 			
 			Registry registry = LocateRegistry.getRegistry(initialServer.getIp(), initialServer.getPort() );
 			WideBoxServer wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
