@@ -22,12 +22,8 @@ public class GetServersPageController extends HttpServlet {
 		String result;
 		Gson gson = new Gson();
 		
-		try {
-			instanceManager = InstanceManager.getInstance();
-			result = gson.toJson(instanceManager.getAllServers() );
-		} catch (Exception e) {
-			result = "error";
-		}
+		instanceManager = InstanceManager.getInstance();
+		result = gson.toJson(instanceManager.getAllServers() );
 		
 		request.setAttribute("result", result);
 		request.getRequestDispatcher("result.jsp").forward(request, response);

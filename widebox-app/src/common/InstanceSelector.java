@@ -2,21 +2,25 @@ package common;
 
 import java.util.List;
 
+/**
+ * Singleton used to get the details of the instance of a server serving a theater.
+ */
 public class InstanceSelector {
-	private static InstanceSelector instance;
 	
 	private InstanceManager instanceManager;
 	
-	private InstanceSelector() throws Exception{
+	private InstanceSelector(){
 		instanceManager = InstanceManager.getInstance();
 	}
 	
 	
-	public static InstanceSelector getInstance() throws Exception{
-		//TODO possiveis problemas de concurrencia?
-		if (instance == null)
-			instance = new InstanceSelector();
-		return instance;
+	private static class StaticHolder {
+		static final InstanceSelector INSTANCE = new InstanceSelector();
+	}
+    
+	
+	public static InstanceSelector getInstance(){
+		return StaticHolder.INSTANCE;
 	}
 	
 	

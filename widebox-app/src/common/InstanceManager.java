@@ -8,14 +8,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * This singleton reads the information about all the server instances from the
+ * servers.config file, and saves it to provite it to whoever needs it.
+ */
 public class InstanceManager {
-	
-	private static InstanceManager instance;
 	
 	private Map<InstanceType, List<Server>> servers;
 	
-	
-	private InstanceManager() throws Exception{
+	private InstanceManager(){
 		servers = new HashMap<InstanceType, List<Server>>();
 		//TODO fix this messy code and the file
 		try {
@@ -37,19 +38,23 @@ public class InstanceManager {
 			sc.close();
 		}catch (FileNotFoundException e){
 			//TODO the folder/file needs to be on the bin folder of the web server for it to work, fix this somehow
-			System.out.println("File not found. Full path: " + new File("config/servers.config").getAbsolutePath() );
-			e.printStackTrace();
+			System.out.println("servers.config file not found.\n Looking for it in this path: " + new File("config/servers.config").getAbsolutePath() );
+			System.exit(-1);
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new Exception("Error parsing servers.config file.");
+			System.out.println("Error parsing servers.config file.");
+			System.exit(-1);
 		}
 	}
 	
 	
-	public static InstanceManager getInstance() throws Exception{
-		if (instance == null)
-			instance = new InstanceManager();
-		return instance;
+	private static class StaticHolder {
+		static final InstanceManager INSTANCE = new InstanceManager();
+	}
+    
+	
+	public static InstanceManager getInstance(){
+		return StaticHolder.INSTANCE;
 	}
 	
 	
