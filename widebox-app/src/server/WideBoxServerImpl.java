@@ -14,7 +14,11 @@ import java.util.Map;
 import java.util.Random;
 
 import common.Debugger;
+import common.InstanceManager;
+import common.InstanceSelector;
+import common.InstanceType;
 import common.Seat;
+import common.Server;
 import common.TimeoutManager;
 import database.WideBoxDatabase;
 
@@ -22,7 +26,8 @@ import database.WideBoxDatabase;
 public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxServer, SeatTimeoutListener {
 
 	private static final long serialVersionUID = 6332295204270798892L;
-	private WideBoxDatabase wideBoxDatabase;
+	private HashMap<Server, WideBoxDatabase> database;
+	private InstanceSelector instanceSelector;
 
 	/** Map to keep track of Seat Reservation Timeouts **/
 	private Map<Integer, TimeoutManager> timeoutMap;
@@ -75,24 +80,31 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	 * -Djava.rmi.server.hostname=ip-dos-servidores
 	 * e iniciando o rmiregistry antes dos servidores.
 	 * Alterei tambem a porta 1099 do database server
+	 * @throws NotBoundException 
 	 */
 	
-	public WideBoxServerImpl(String host, int port) throws IOException, RemoteException {
+	public WideBoxServerImpl() throws IOException, RemoteException, NotBoundException {
 		super();
-
-		try {
-			Registry registry = LocateRegistry.getRegistry(host, port);
-			wideBoxDatabase = (WideBoxDatabase) registry.lookup("WideBoxDatabase");
-			registerService();
-			randomGenerator = new Random();
-			Debugger.log("Application server is ready");
-		} catch (RemoteException | NotBoundException e) {
-			throw new RemoteException("Error connecting to the Database Server.");
-		}
+		InstanceManager instanceManager = InstanceManager.getInstance();
+		instanceSelector = InstanceSelector.getInstance();
+		database = getRemoteDatabaseObjects(instanceManager.getServers(InstanceType.DATABASE));
+		registerService();
+		randomGenerator = new Random();
+		Debugger.log("Application server is ready");
 		properties = new ServerProperties();
 		timeoutMap = new HashMap<>();
 		reservationMap = new HashMap<>();
 
+	}
+	
+	private HashMap<Server, WideBoxDatabase> getRemoteDatabaseObjects(List<Server> servers) throws RemoteException, NotBoundException {
+		HashMap<Server, WideBoxDatabase> res = new HashMap<>();
+		Registry registry;
+		for (Server s : servers) {
+			registry = LocateRegistry.getRegistry(s.getIp(), s.getPort());
+			res.put(s, (WideBoxDatabase) registry.lookup("WideBoxDatabase"));
+		}
+		return res;		
 	}
 	
 	private void registerService() throws RemoteException {
@@ -109,14 +121,14 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	@Override
 	public Map<String, Integer> getTheaters() throws RemoteException{
 		Debugger.log("Got Request for Theaters");
-		return wideBoxDatabase.getTheaters();
+		return database.get(instanceSelector.getInstanceServingTheater(0, InstanceType.DATABASE)).getTheaters();
 	}
 
 
 	@Override
 	public Seat[][] getTheaterInfo(int theaterId, int clientId) throws RemoteException{
 		Debugger.log("Got info request for theather " + theaterId + " from clientID " + clientId);
-		Seat[][] seats = wideBoxDatabase.getTheatersInfo(theaterId);
+		Seat[][] seats = database.get(instanceSelector.getInstanceServingTheater(theaterId, InstanceType.DATABASE)).getTheatersInfo(theaterId);
 		if(!clientHasReservation(clientId)) {
 			Place seat = pickFreeSeat(seats);
 			if(!reserveSeat(theaterId, clientId, seat.getRow(), seat.getColumn())) {
@@ -156,7 +168,8 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		if(reservation == null) {
 			return false;
 		}
-		if (wideBoxDatabase.acceptReservedSeat(reservation.getTheaterId(), clientId, reservation.getPlace().getRow(), reservation.getPlace().getColumn())) {
+		// I'm sorry. I'm so sorry.
+		if (database.get(instanceSelector.getInstanceServingTheater(reservation.getTheaterId(), InstanceType.DATABASE)).acceptReservedSeat(reservation.getTheaterId(), clientId, reservation.getPlace().getRow(), reservation.getPlace().getColumn())) {
 			TimeoutManager timeout = timeoutMap.get(clientId);
 			timeout.stop();
 			timeoutMap.remove(clientId);

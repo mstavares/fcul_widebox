@@ -2,6 +2,7 @@ package server;
 
 import java.io.IOException;
 import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -45,11 +46,13 @@ public class ServerStarter extends UnicastRemoteObject implements InstanceContro
 		if (this.online)
 			return false;
 		try {
-			this.serverInstance = new WideBoxServerImpl(serverIp, serverPort);
+			this.serverInstance = new WideBoxServerImpl();
 			this.online = true;
 		} catch (IOException e) {
 			throw new RemoteException("Error starting server instance");
 			// Return false em vez de lançar uma excepção?
+		} catch (NotBoundException e) {
+			throw new RemoteException("Error starting server instance: Already Bound");
 		}
 		return true;
 	}
