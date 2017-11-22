@@ -2,12 +2,11 @@ package server;
 
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.util.Scanner;
 
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException, RemoteException {
-		Scanner sc = new Scanner(System.in);
+		/*Scanner sc = new Scanner(System.in);
 		
 		String serverIp;
 		int serverPort;
@@ -23,8 +22,9 @@ public class ServerMain {
 			System.out.println("Insert the server port:");
 			serverPort = sc.nextInt();
 		}
-		sc.close();
-		new ServerStarter(serverIp, serverPort);
+		sc.close();*/
+		//TODO maybe ask for the port to use instead?
+		new ServerStarter();
 	}
 
 }

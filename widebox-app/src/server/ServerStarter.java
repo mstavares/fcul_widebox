@@ -18,13 +18,9 @@ public class ServerStarter extends UnicastRemoteObject implements InstanceContro
 	private static final long serialVersionUID = -23490925764346709L;
 	private boolean online;
 	private WideBoxServerImpl serverInstance;
-	private String serverIp;
-	private int serverPort;
 	
-	public ServerStarter(String host, int port) throws RemoteException {
+	public ServerStarter() throws RemoteException {
 		super();
-		this.serverIp = host;
-		this.serverPort = port;
 		online = false;
 		startRegistry();
 		startServer();
