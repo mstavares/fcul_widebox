@@ -30,17 +30,16 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	private HashMap<Server, WideBoxDatabase> database;
 	private InstanceSelector instanceSelector;
 
-	/** Map to keep track of Seat Reservation Timeouts **/
-	private Map<Integer, TimeoutManager> timeoutMap;
 	/** Map to keep track of Open Seat Reservations **/
 	private Map<Integer, Reservation> reservationMap;
-	private Random randomGenerator;
 	
 	/** """Cache""" **/
 	private Map<String, Integer> theatherMap;
 
 	/** Server server properties object */
 	private ServerProperties properties;
+	
+	private Random randomGenerator;
 
 	private class Place {
 		private int row;
@@ -63,10 +62,12 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	private class Reservation {
 		private Place place;
 		private int theaterId;
+		private TimeoutManager timeoutManager;
 
-		public Reservation(int theaterId, Place place) {
+		public Reservation(int theaterId, Place place, TimeoutManager timeoutManager) {
 			this.theaterId = theaterId;
 			this.place = place;
+			this.timeoutManager = timeoutManager;
 		}
 
 		public int getTheaterId() {
@@ -75,6 +76,10 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 		public Place getPlace() {
 			return this.place;
+		}
+		
+		public TimeoutManager getTimeoutManager() {
+			return this.timeoutManager;
 		}
 	}
 
@@ -87,7 +92,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		registerService();
 		randomGenerator = new Random();
 		properties = new ServerProperties();
-		timeoutMap = new HashMap<>();
 		reservationMap = new HashMap<>();
 		/** """Cache""" the theather map for faster responde for getTheaters requests **/
 		theatherMap = database.get(instanceSelector.getRandomInstance(InstanceType.DATABASE)).getTheaters();
@@ -149,11 +153,9 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 			cancelReservation(clientId);
 		}	
 		Debugger.log("Reserving seat for clientID " + clientId);
-		reservationMap.put(clientId, new Reservation(theaterId, new Place(row, column)));
-		// Este construtor tambem está horrivel, mas por agora serve
-		TimeoutManager timeout = new TimeoutManager(this, properties.getTimeoutValue(), clientId);
-		timeout.runOnlyOnce();
-		timeoutMap.put(clientId, timeout);
+		Reservation reservation = new Reservation(theaterId, new Place(row, column), new TimeoutManager(this, properties.getTimeoutValue(), clientId));
+		reservationMap.put(clientId, reservation);
+		reservation.getTimeoutManager().runOnlyOnce();
 		return true;
 	}
 	
@@ -165,9 +167,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		}
 		// I'm sorry. I'm so sorry.
 		if (database.get(instanceSelector.getInstanceServingTheater(reservation.getTheaterId(), InstanceType.DATABASE)).acceptReservedSeat(reservation.getTheaterId(), clientId, reservation.getPlace().getRow(), reservation.getPlace().getColumn())) {
-			TimeoutManager timeout = timeoutMap.get(clientId);
-			timeout.stop();
-			timeoutMap.remove(clientId);
+			reservation.getTimeoutManager().stop();
 			reservationMap.remove(clientId);
 			Debugger.log("Confirmed reservation for clientId " + clientId);
 			return true;
@@ -181,9 +181,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		if(reservation == null) {
 			return false;
 		}
-		TimeoutManager timeout = timeoutMap.get(clientId);
-		timeout.stop();
-		timeoutMap.remove(clientId);
+		reservation.getTimeoutManager().stop();
 		reservationMap.remove(clientId);
 		Debugger.log("Canceled reservation for clientId " + clientId);
 		return true;
@@ -202,7 +200,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		return freeSeats.get(randomGenerator.nextInt(freeSeats.size()));
 	}
 	
-	// inline
 	private boolean clientHasReservation(int clientId) {
 		return reservationMap.containsKey(clientId);
 	}
