@@ -12,11 +12,9 @@ import common.InstanceControl;
 
 public class ServerStarter extends UnicastRemoteObject implements InstanceControl {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -23490925764346709L;
 	private boolean online;
+	/* The serverInstance of this node */
 	private WideBoxServerImpl serverInstance;
 	
 	public ServerStarter() throws RemoteException {
@@ -26,6 +24,9 @@ public class ServerStarter extends UnicastRemoteObject implements InstanceContro
 		startServer();
 	}
 
+	/* Creates the registry and binds this object to it.
+	 * Ideally, the actual server implementation also uses this registry
+	 */
 	private void startRegistry() throws RemoteException {
 		try {
 			Registry registry = LocateRegistry.createRegistry(1090);

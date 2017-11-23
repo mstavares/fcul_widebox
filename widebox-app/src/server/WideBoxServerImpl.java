@@ -26,6 +26,7 @@ import database.WideBoxDatabase;
 public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxServer, SeatTimeoutListener {
 
 	private static final long serialVersionUID = 6332295204270798892L;
+	/** HashMap with all remote database objects **/
 	private HashMap<Server, WideBoxDatabase> database;
 	private InstanceSelector instanceSelector;
 
@@ -75,14 +76,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	}
 
 
-	/**
-	 * Só consegui por a funcionar tendo o vm argument 
-	 * -Djava.rmi.server.hostname=ip-dos-servidores
-	 * e iniciando o rmiregistry antes dos servidores.
-	 * Alterei tambem a porta 1099 do database server
-	 * @throws NotBoundException 
-	 */
-	
 	public WideBoxServerImpl() throws IOException, RemoteException, NotBoundException {
 		super();
 		InstanceManager instanceManager = InstanceManager.getInstance();
@@ -90,11 +83,10 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		database = getRemoteDatabaseObjects(instanceManager.getServers(InstanceType.DATABASE));
 		registerService();
 		randomGenerator = new Random();
-		Debugger.log("Application server is ready");
 		properties = new ServerProperties();
 		timeoutMap = new HashMap<>();
 		reservationMap = new HashMap<>();
-
+		Debugger.log("Application server is ready");
 	}
 	
 	private HashMap<Server, WideBoxDatabase> getRemoteDatabaseObjects(List<Server> servers) throws RemoteException, NotBoundException {
@@ -111,6 +103,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		try {
 			Registry registry = LocateRegistry.getRegistry(1090);
 			registry.bind("WideBoxServer", this);
+			Debugger.log("Successfully binded Application Server to Starter Registry");
 		} catch (RemoteException | AlreadyBoundException e) {
 			e.printStackTrace();
 			throw new RemoteException("Error creating registry");
