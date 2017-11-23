@@ -8,6 +8,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
+import common.Debugger;
 import common.InstanceControl;
 
 public class ServerStarter extends UnicastRemoteObject implements InstanceControl {
@@ -51,6 +52,7 @@ public class ServerStarter extends UnicastRemoteObject implements InstanceContro
 		} catch (NotBoundException e) {
 			throw new RemoteException("Error starting server instance: Already Bound");
 		}
+		Debugger.log("Server successfuly started");
 		return true;
 	}
 
@@ -61,6 +63,7 @@ public class ServerStarter extends UnicastRemoteObject implements InstanceContro
 		this.serverInstance.unbind();
 		this.serverInstance = null;
 		this.online = false;
+		Debugger.log("Server successfuly stopped");
 		return true;
 	}
 

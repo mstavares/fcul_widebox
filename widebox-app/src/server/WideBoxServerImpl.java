@@ -35,6 +35,9 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	/** Map to keep track of Open Seat Reservations **/
 	private Map<Integer, Reservation> reservationMap;
 	private Random randomGenerator;
+	
+	/** """Cache""" **/
+	private Map<String, Integer> theatherMap;
 
 	/** Server server properties object */
 	private ServerProperties properties;
@@ -86,6 +89,8 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		properties = new ServerProperties();
 		timeoutMap = new HashMap<>();
 		reservationMap = new HashMap<>();
+		/** """Cache""" the theather map for faster responde for getTheaters requests **/
+		theatherMap = database.get(instanceSelector.getRandomInstance(InstanceType.DATABASE)).getTheaters();
 		Debugger.log("Application server is ready");
 	}
 	
@@ -95,6 +100,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		for (Server s : servers) {
 			registry = LocateRegistry.getRegistry(s.getIp(), s.getPort());
 			res.put(s, (WideBoxDatabase) registry.lookup("WideBoxDatabase"));
+			Debugger.log("Added Database Server " + s.getIp() + " to Remote Objects Map");
 		}
 		return res;		
 	}
@@ -114,7 +120,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	@Override
 	public Map<String, Integer> getTheaters() throws RemoteException{
 		Debugger.log("Got Request for Theaters");
-		return database.get(instanceSelector.getRandomInstance(InstanceType.DATABASE)).getTheaters();
+		return theatherMap;
 	}
 
 
@@ -141,8 +147,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	public synchronized boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
 		if (clientHasReservation(clientId)) {
 			cancelReservation(clientId);
-		}
-	
+		}	
 		Debugger.log("Reserving seat for clientID " + clientId);
 		reservationMap.put(clientId, new Reservation(theaterId, new Place(row, column)));
 		// Este construtor tambem está horrivel, mas por agora serve
@@ -197,6 +202,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		return freeSeats.get(randomGenerator.nextInt(freeSeats.size()));
 	}
 	
+	// inline
 	private boolean clientHasReservation(int clientId) {
 		return reservationMap.containsKey(clientId);
 	}
@@ -213,7 +219,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		}
 	}
 
-	// TODO Analisar isto como deve ser
 	public void unbind() {
 		try {
 			Registry registry = LocateRegistry.getRegistry(1090);
