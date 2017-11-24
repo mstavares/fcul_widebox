@@ -32,6 +32,9 @@ function createObject(){
 var generate = true;
 var second = 0;
 var newTheaters = false;
+var clientsAnswered = 0;
+var clientsTotal = 0;
+var clientsFailed = 0;
 
 function startGenerator(){
 	var numClients = document.getElementsByName("nClients")[0].value;
@@ -64,6 +67,15 @@ function startGenerator(){
                 }
 
                 window.myBar.update();
+
+                //update labels:
+                clientsFailed += content.failedRequests;
+                clientsAnswered += content.requestsCompleted.length;
+                clientsAnswered += content.previousRequests.length;
+                clientsTotal += parseInt(numClients);
+                document.getElementById("clientsFailed").innerHTML = clientsFailed;
+                document.getElementById("clientsAnswered").innerHTML = clientsAnswered;
+                document.getElementById("clientsTotal").innerHTML = clientsTotal;
             }
             
             if (generate)

@@ -43,7 +43,8 @@
 			<br /><input id="startButton" class="btn" type="submit" value="Start Generator" onclick="startGenerator(); return false;"></input>
 			<input id="stopButton" class="btn" type="submit" value="Stop Generator" onclick="stopGenerator(); return false;" disabled="disabled" title="Stopping randomly chooses other theaters."></input>
 		</form>
-		
+		Number of clients answered: <span id="clientsAnswered"></span> out of <span id="clientsTotal"></span> ( <span id="clientsFailed"></span> failed ).
+		<br />
 		<div class="graph">
 			<canvas id="canvas"></canvas>
 			<canvas id="canvas2"></canvas>
