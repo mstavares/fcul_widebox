@@ -17,6 +17,7 @@ public class ClientWorker {
 	private AtomicInteger failedClients;
 	private List<Long> finishedClients;
 	private List<Long> finishedLateClients;
+	private int[] theaters;
 	
 	private ClientWorker(){
 		currentClientId = new AtomicInteger(0);
@@ -37,18 +38,21 @@ public class ClientWorker {
 	}
 	
 	
-	public Result sendRequests(int numClients, int numTeathers, boolean confirm) throws RemoteException{
+	public Result sendRequests(int numClients, int numTeathers, boolean confirm, boolean newTheaters) throws RemoteException{
 		Long[] requestsCompleted;
 		Long[] previousRequests;
-		int[] theaters = new int[numTeathers];
 		Random rd = new Random();
 		
-		for (int i = 0; i < numTeathers; i++){
-			theaters[i] = rd.nextInt(NRTH) + 1;
+		if (newTheaters || theaters == null){
+			theaters = new int[numTeathers];
+			for (int i = 0; i < numTeathers; i++){
+				theaters[i] = rd.nextInt(NRTH) + 1;
+			}
 		}
+
 		
 		for (int i = 0; i < numClients; i++){
-			new Thread(new ClientRunnable(theaters, confirm) ).start();
+			new Thread(new ClientRunnable(confirm) ).start();
 		}
 		
 		try {
@@ -98,11 +102,9 @@ public class ClientWorker {
 	
 	private class ClientRunnable implements Runnable{
 
-		private int[] theaters;
 		private boolean confirm;
 
-		public ClientRunnable(int[] theaters, boolean confirm) {
-			this.theaters = theaters;
+		public ClientRunnable(boolean confirm) {
 			this.confirm = confirm;
 		}
 

@@ -31,6 +31,7 @@ function createObject(){
 
 var generate = true;
 var second = 0;
+var newTheaters = false;
 
 function startGenerator(){
 	var numClients = document.getElementsByName("nClients")[0].value;
@@ -71,8 +72,9 @@ function startGenerator(){
     };
     
     generate = true;
-    ajax.open('GET', "generateClients?numClients=" + numClients + "&numTeathers=" + numTheaters + "&confirm=" + confirm, true);
+    ajax.open('GET', "generateClients?numClients=" + numClients + "&numTeathers=" + numTheaters + "&confirm=" + confirm + "&newTheaters=" + newTheaters, true);
     ajax.send();
+    newTheaters = false;
 }
 
 
@@ -147,7 +149,8 @@ window.onload = function() {
 function stopGenerator() {
 	generate = false;
 	document.getElementById("startButton").disabled = false;
-	document.getElementById("stopButton").disabled = true;
+    document.getElementById("stopButton").disabled = true;
+    newTheaters = true;
 }
 
 
@@ -166,7 +169,7 @@ var barChart = {
     data: {
         labels: ["]0-0.1]", "]0.1-0.2]", "]0.2-0.3]", "]0.3-0.4]", "]0.4-0.5]", "]0.5-0.6]", "]0.6-0.7]", "]0.7-0.8]", "]0.8-0.9]", "]0.9-1.0]", "]1.0-1.1]", "]1.1-1.2]", "]1.2-1.3]", "]1.3-1.4]", "]1.4-1.5]", "]1.5-1.6]", "]1.6-1.7]", "]1.7-1.8]", "]1.8-1.9]", "]1.9-2.0]", "2.0+"],
         datasets: [{
-            label: 'Time to serve Clients',
+            label: 'Amount of Clients served per time slot',
             backgroundColor: window.chartColors.yellow,
             borderColor: window.chartColors.red,
             borderWidth: 1,
@@ -194,7 +197,7 @@ var barChart = {
                 display: true,
                 scaleLabel: {
                     display: true,
-                    labelString: 'Number of clients'
+                    labelString: 'Amount of clients'
                 }
             }]
         },

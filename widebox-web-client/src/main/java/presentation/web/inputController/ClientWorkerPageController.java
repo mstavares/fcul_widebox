@@ -21,13 +21,14 @@ public class ClientWorkerPageController extends HttpServlet {
 		int numClients = Integer.parseInt(request.getParameter("numClients"));
 		int numTeathers = Integer.parseInt(request.getParameter("numTeathers"));
 		boolean confirm = Boolean.parseBoolean(request.getParameter("confirm"));
+		boolean newTheaters = Boolean.parseBoolean(request.getParameter("newTheaters"));
 		
 		String result;
 		Gson gson = new Gson();
 		
 		try {
 			ClientWorker clientWorker = ClientWorker.getInstance();
-			result = gson.toJson( clientWorker.sendRequests(numClients, numTeathers, confirm) );
+			result = gson.toJson( clientWorker.sendRequests(numClients, numTeathers, confirm, newTheaters) );
 		} catch (Exception e) {
 			result = "error";
 		}
