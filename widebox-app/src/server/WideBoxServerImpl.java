@@ -190,35 +190,10 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	}
 
 	private Place pickFreeSeat(Seat[][] seats, int theaterId) throws FullTheaterException {
-		int row = lastFreeSeat[theaterId] / seats.length;
-		int col = lastFreeSeat[theaterId] % seats[0].length;
-		// Check if the pointer is at the end of a row
-		if(col >= seats[0].length) {
-			col = 0;
-			row ++;
-		}
-		// Check is we have gon over the last row
-		if(row >= seats.length)
-			throw new FullTheaterException("Theater " + theaterId +" is full");
-		// Check if the spot next to the last assigned is free
-		if(seats[row][col].isFree()) {
-			lastFreeSeat[theaterId] = (row * seats[0].length) + col + 1;
-			return new Place(row, col);
-		}
-		// If not, check the row for a free spot 
-		for(int k = col + 1; k < seats[row].length; k++) {
-			if(seats[row][k].isFree()) {
-				lastFreeSeat[theaterId] = (row * seats[row].length) + k + 1;
-				return new Place(row, k);
-			}
-		}
-		// If still no spot is found, it checks the next rows for free spots
-		for(int i = row; i < seats.length; i++) {
-			for(int k = 0; k < seats[i].length; k++) {
-				if(seats[i][k].isFree()) {
-					lastFreeSeat[theaterId] = (row * seats[i].length) + k + 1;
+		for (int i = 0; i < seats.length; i++) {
+			for (int k = 0; k < seats[i].length; k++) {
+				if(seats[i][k].isFree())
 					return new Place(i, k);
-				}
 			}
 		}
 		throw new FullTheaterException("Theater " + theaterId +" is full");
