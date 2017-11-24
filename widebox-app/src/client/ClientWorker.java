@@ -8,6 +8,8 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import exceptions.FullTheaterException;
+
 public class ClientWorker {
 	
 	private final int NRTH;
@@ -111,7 +113,6 @@ public class ClientWorker {
 				int clientId = currentClientId.getAndIncrement();
 				WideBoxClient client = new WideBoxClient(clientId);
 				client.getTheaterInfo( theaters[ ThreadLocalRandom.current().nextInt(theaters.length) ] );
-				//TODO what if it's full?
 				
 				if (confirm){
 					if ( !client.acceptReservedSeat() ){
@@ -127,7 +128,7 @@ public class ClientWorker {
 				else
 					finishedLateClients.add(totalTime);
 				
-			} catch (RemoteException e) {
+			} catch (RemoteException | FullTheaterException e) {
 				failedClients.incrementAndGet();
 			}
 			

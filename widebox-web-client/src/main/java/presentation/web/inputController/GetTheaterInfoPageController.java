@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import client.ClientStore;
 import client.WideBoxClient;
 import common.Seat;
+import exceptions.FullTheaterException;
 
 
 @WebServlet("/getTheaterInfo")
@@ -31,6 +32,8 @@ public class GetTheaterInfoPageController extends HttpServlet {
 			Seat[][] seats = client.getTheaterInfo(theaterId);
 			Gson gson = new Gson();
 			result = gson.toJson(seats);
+		} catch (FullTheaterException e) {
+			result = "full";
 		} catch (Exception e) {
 			result = "error";
 		}

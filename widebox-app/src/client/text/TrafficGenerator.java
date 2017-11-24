@@ -6,6 +6,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 import client.WideBoxClient;
+import exceptions.FullTheaterException;
 
 public class TrafficGenerator {
 
@@ -48,6 +49,8 @@ public class TrafficGenerator {
 					System.out.println("Client " + clientId + ": Error accepting reserved seat.");
 			} catch (RemoteException e) {
 				System.out.println("Client " + clientId + ": Error connecting to the server.");
+			} catch (FullTheaterException e) {
+				System.out.println("Client " + clientId + ": Error: Full theater.");
 			}
 			
 		}

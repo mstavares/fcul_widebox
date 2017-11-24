@@ -9,6 +9,7 @@ import java.util.Scanner;
 import client.WideBoxClient;
 import common.Debugger;
 import common.Seat;
+import exceptions.FullTheaterException;
 
 public class ClientMain {
 
@@ -102,6 +103,8 @@ public class ClientMain {
 		} catch (RemoteException e) {
 			e.printStackTrace();
 			System.out.println("Error connecting to the server.");
+		} catch (FullTheaterException e) {
+			System.out.println("The theater with the given id is full.");
 		}
 
 		sc.close();

@@ -11,6 +11,7 @@ import common.InstanceSelector;
 import common.InstanceType;
 import common.Seat;
 import common.Server;
+import exceptions.FullTheaterException;
 import server.WideBoxServer;
 
 public class WideBoxClient {
@@ -46,7 +47,7 @@ public class WideBoxClient {
 	}
 
 
-	public Seat[][] getTheaterInfo(int theaterId) throws RemoteException{
+	public Seat[][] getTheaterInfo(int theaterId) throws RemoteException, FullTheaterException{
 		currentReservation = getServerServing(theaterId);
 		return currentReservation.getTheaterInfo(theaterId, id);
 	}
