@@ -8,15 +8,14 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
+import common.Debugger;
 import common.InstanceControl;
 
 public class ServerStarter extends UnicastRemoteObject implements InstanceControl {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -23490925764346709L;
 	private boolean online;
+	/* The serverInstance of this node */
 	private WideBoxServerImpl serverInstance;
 	
 	public ServerStarter() throws RemoteException {
@@ -26,6 +25,9 @@ public class ServerStarter extends UnicastRemoteObject implements InstanceContro
 		startServer();
 	}
 
+	/* Creates the registry and binds this object to it.
+	 * Ideally, the actual server implementation also uses this registry
+	 */
 	private void startRegistry() throws RemoteException {
 		try {
 			Registry registry = LocateRegistry.createRegistry(1090);
@@ -50,6 +52,7 @@ public class ServerStarter extends UnicastRemoteObject implements InstanceContro
 		} catch (NotBoundException e) {
 			throw new RemoteException("Error starting server instance: Already Bound");
 		}
+		Debugger.log("Server successfuly started");
 		return true;
 	}
 
@@ -60,6 +63,7 @@ public class ServerStarter extends UnicastRemoteObject implements InstanceContro
 		this.serverInstance.unbind();
 		this.serverInstance = null;
 		this.online = false;
+		Debugger.log("Server successfuly stopped");
 		return true;
 	}
 

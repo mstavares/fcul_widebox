@@ -21,22 +21,26 @@ import common.Seat;
 import common.Server;
 import common.TimeoutManager;
 import database.WideBoxDatabase;
+import exceptions.FullTheaterException;
 
 
 public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxServer, SeatTimeoutListener {
 
 	private static final long serialVersionUID = 6332295204270798892L;
+	/** HashMap with all remote database objects **/
 	private HashMap<Server, WideBoxDatabase> database;
 	private InstanceSelector instanceSelector;
 
-	/** Map to keep track of Seat Reservation Timeouts **/
-	private Map<Integer, TimeoutManager> timeoutMap;
 	/** Map to keep track of Open Seat Reservations **/
 	private Map<Integer, Reservation> reservationMap;
-	private Random randomGenerator;
+	
+	/** """Cache""" **/
+	private Map<String, Integer> theatherMap;
 
 	/** Server server properties object */
 	private ServerProperties properties;
+	
+	private int[] lastFreeSeat;
 
 	private class Place {
 		private int row;
@@ -59,10 +63,12 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	private class Reservation {
 		private Place place;
 		private int theaterId;
+		private TimeoutManager timeoutManager;
 
-		public Reservation(int theaterId, Place place) {
+		public Reservation(int theaterId, Place place, TimeoutManager timeoutManager) {
 			this.theaterId = theaterId;
 			this.place = place;
+			this.timeoutManager = timeoutManager;
 		}
 
 		public int getTheaterId() {
@@ -72,29 +78,26 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		public Place getPlace() {
 			return this.place;
 		}
+		
+		public TimeoutManager getTimeoutManager() {
+			return this.timeoutManager;
+		}
 	}
 
 
-	/**
-	 * Só consegui por a funcionar tendo o vm argument 
-	 * -Djava.rmi.server.hostname=ip-dos-servidores
-	 * e iniciando o rmiregistry antes dos servidores.
-	 * Alterei tambem a porta 1099 do database server
-	 * @throws NotBoundException 
-	 */
-	
 	public WideBoxServerImpl() throws IOException, RemoteException, NotBoundException {
 		super();
 		InstanceManager instanceManager = InstanceManager.getInstance();
 		instanceSelector = InstanceSelector.getInstance();
 		database = getRemoteDatabaseObjects(instanceManager.getServers(InstanceType.DATABASE));
 		registerService();
-		randomGenerator = new Random();
-		Debugger.log("Application server is ready");
 		properties = new ServerProperties();
-		timeoutMap = new HashMap<>();
 		reservationMap = new HashMap<>();
-
+		/** """Cache""" the theather map for faster responde for getTheaters requests **/
+		theatherMap = database.get(instanceSelector.getRandomInstance(InstanceType.DATABASE)).getTheaters();
+		lastFreeSeat = new int[theatherMap.size()];
+		
+		Debugger.log("Application server is ready");
 	}
 	
 	private HashMap<Server, WideBoxDatabase> getRemoteDatabaseObjects(List<Server> servers) throws RemoteException, NotBoundException {
@@ -103,6 +106,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		for (Server s : servers) {
 			registry = LocateRegistry.getRegistry(s.getIp(), s.getPort());
 			res.put(s, (WideBoxDatabase) registry.lookup("WideBoxDatabase"));
+			Debugger.log("Added Database Server " + s.getIp() + " to Remote Objects Map");
 		}
 		return res;		
 	}
@@ -111,6 +115,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		try {
 			Registry registry = LocateRegistry.getRegistry(1090);
 			registry.bind("WideBoxServer", this);
+			Debugger.log("Successfully binded Application Server to Starter Registry");
 		} catch (RemoteException | AlreadyBoundException e) {
 			e.printStackTrace();
 			throw new RemoteException("Error creating registry");
@@ -121,16 +126,16 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	@Override
 	public Map<String, Integer> getTheaters() throws RemoteException{
 		Debugger.log("Got Request for Theaters");
-		return database.get(instanceSelector.getRandomInstance(InstanceType.DATABASE)).getTheaters();
+		return theatherMap;
 	}
 
 
 	@Override
-	public Seat[][] getTheaterInfo(int theaterId, int clientId) throws RemoteException{
+	public Seat[][] getTheaterInfo(int theaterId, int clientId) throws RemoteException, FullTheaterException{
 		Debugger.log("Got info request for theather " + theaterId + " from clientID " + clientId);
 		Seat[][] seats = database.get(instanceSelector.getInstanceServingTheater(theaterId, InstanceType.DATABASE)).getTheatersInfo(theaterId);
 		if(!clientHasReservation(clientId)) {
-			Place seat = pickFreeSeat(seats);
+			Place seat = pickFreeSeat(seats, theaterId);
 			if(!reserveSeat(theaterId, clientId, seat.getRow(), seat.getColumn())) {
 				Debugger.log("Seat was not reserved");
 				throw new RemoteException("Error automatically reserving seat");
@@ -148,14 +153,11 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	public synchronized boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
 		if (clientHasReservation(clientId)) {
 			cancelReservation(clientId);
-		}
-	
+		}	
 		Debugger.log("Reserving seat for clientID " + clientId);
-		reservationMap.put(clientId, new Reservation(theaterId, new Place(row, column)));
-		// Este construtor tambem está horrivel, mas por agora serve
-		TimeoutManager timeout = new TimeoutManager(this, properties.getTimeoutValue(), clientId);
-		timeout.runOnlyOnce();
-		timeoutMap.put(clientId, timeout);
+		Reservation reservation = new Reservation(theaterId, new Place(row, column), new TimeoutManager(this, properties.getTimeoutValue(), clientId));
+		reservationMap.put(clientId, reservation);
+		reservation.getTimeoutManager().runOnlyOnce();
 		return true;
 	}
 	
@@ -167,9 +169,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		}
 		// I'm sorry. I'm so sorry.
 		if (database.get(instanceSelector.getInstanceServingTheater(reservation.getTheaterId(), InstanceType.DATABASE)).acceptReservedSeat(reservation.getTheaterId(), clientId, reservation.getPlace().getRow(), reservation.getPlace().getColumn())) {
-			TimeoutManager timeout = timeoutMap.get(clientId);
-			timeout.stop();
-			timeoutMap.remove(clientId);
+			reservation.getTimeoutManager().stop();
 			reservationMap.remove(clientId);
 			Debugger.log("Confirmed reservation for clientId " + clientId);
 			return true;
@@ -183,25 +183,45 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		if(reservation == null) {
 			return false;
 		}
-		TimeoutManager timeout = timeoutMap.get(clientId);
-		timeout.stop();
-		timeoutMap.remove(clientId);
+		reservation.getTimeoutManager().stop();
 		reservationMap.remove(clientId);
 		Debugger.log("Canceled reservation for clientId " + clientId);
 		return true;
 	}
 
-	//TODO arranjar uma forma mais eficiente de fazer isto
-	private Place pickFreeSeat(Seat[][] seats) {
-		List<Place> freeSeats = new ArrayList<>();
-		for(int i = 0; i < seats.length; i++) {
+	private Place pickFreeSeat(Seat[][] seats, int theaterId) throws FullTheaterException {
+		int row = lastFreeSeat[theaterId] / seats.length;
+		int col = lastFreeSeat[theaterId] % seats[0].length;
+		// Check if the pointer is at the end of a row
+		if(col >= seats[0].length) {
+			col = 0;
+			row ++;
+		}
+		// Check is we have gon over the last row
+		if(row >= seats.length)
+			throw new FullTheaterException("Theater " + theaterId +" is full");
+		// Check if the spot next to the last assigned is free
+		if(seats[row][col].isFree()) {
+			lastFreeSeat[theaterId] = (row * seats[0].length) + col + 1;
+			return new Place(row, col);
+		}
+		// If not, check the row for a free spot 
+		for(int k = col + 1; k < seats[row].length; k++) {
+			if(seats[row][k].isFree()) {
+				lastFreeSeat[theaterId] = (row * seats[row].length) + k + 1;
+				return new Place(row, k);
+			}
+		}
+		// If still no spot is found, it checks the next rows for free spots
+		for(int i = row; i < seats.length; i++) {
 			for(int k = 0; k < seats[i].length; k++) {
 				if(seats[i][k].isFree()) {
-					freeSeats.add(new Place(i,k));
+					lastFreeSeat[theaterId] = (row * seats[i].length) + k + 1;
+					return new Place(i, k);
 				}
 			}
 		}
-		return freeSeats.get(randomGenerator.nextInt(freeSeats.size()));
+		throw new FullTheaterException("Theater " + theaterId +" is full");
 	}
 	
 	private boolean clientHasReservation(int clientId) {
@@ -220,7 +240,6 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		}
 	}
 
-	// TODO Analisar isto como deve ser
 	public void unbind() {
 		try {
 			Registry registry = LocateRegistry.getRegistry(1090);
