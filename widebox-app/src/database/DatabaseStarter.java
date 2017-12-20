@@ -16,7 +16,7 @@ public class DatabaseStarter extends UnicastRemoteObject implements InstanceCont
 	 */
 	private static final long serialVersionUID = -1344731779778569015L;
 	private boolean online;
-	private WideBoxDatabaseImpl serverInstance;
+	public  WideBoxDatabaseImpl serverInstance;
 	
 	protected DatabaseStarter() throws RemoteException {
 		super();

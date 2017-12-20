@@ -1,5 +1,5 @@
 package common;
 
 public enum InstanceType {
-	APP, DATABASE
+	APP, DATABASE, ZOOKEEPER
 }
