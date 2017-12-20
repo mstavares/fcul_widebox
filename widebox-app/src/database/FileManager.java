@@ -173,7 +173,7 @@ class FileManager {
 		
 		existsDatabaseFolder();
 		
-		Map<Integer, Seat[][]> database = new HashMap<Integer, Seat[][]>();
+		Map<Integer, Seat[][]> database;
 		File datFile = new File(DATABASE_PATH);
 		File bakFile = new File(DATABASE_BAK_PATH);
 		File logFile = new File(LOG_PATH);
@@ -194,6 +194,7 @@ class FileManager {
 					//dat + bak
 					datFile.delete();
 					bakFile.renameTo(datFile);
+					database = restoreDat();
 				}else{
 					//dat
 					database = restoreDat();
@@ -214,6 +215,7 @@ class FileManager {
 				if ( bakFile.exists() ){
 					//bak
 					bakFile.renameTo(datFile);
+					database = restoreDat(); //TODO problems when it starts? create empty log?
 				}else{
 					//nothing
 					database = createEmptyDatabase();
