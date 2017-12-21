@@ -1,5 +1,7 @@
 package server;
 
+import static common.Utilities.getFileSeparator;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +13,10 @@ public class ServerProperties {
     private static final String PROPERTIES_FILE_NAME = "server.properties";
 
     /** Properties file path */
-    private static final String PROPERTIES_FILE_PATH = "config/" + PROPERTIES_FILE_NAME;
+    private static final String PROPERTIES_FILE_PATH = "config" + getFileSeparator() + PROPERTIES_FILE_NAME;
+
+    /** Number of theatres key */
+    private static final String NUMBER_OF_THEATERS_KEY = "NrTh";
     
     /** TimeoutManager key */
     private static final String TIMEOUT_KEY = "timeout";
@@ -27,6 +32,10 @@ public class ServerProperties {
     
     int getTimeoutValue() {
         return Integer.parseInt(properties.getProperty(TIMEOUT_KEY));
+    }
+    
+    int getNumberOfTheaters() {
+        return Integer.parseInt(properties.getProperty(NUMBER_OF_THEATERS_KEY));
     }
 
 }

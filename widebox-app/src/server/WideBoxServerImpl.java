@@ -90,6 +90,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		InstanceManager instanceManager = InstanceManager.getInstance();
 		instanceSelector = InstanceSelector.getInstance();
 		database = getRemoteDatabaseObjects(instanceManager.getServers(InstanceType.DATABASE));
+		new ServerPoolManager();
 		registerService();
 		properties = new ServerProperties();
 		reservationMap = new HashMap<>();
