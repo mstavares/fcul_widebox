@@ -1,6 +1,6 @@
 package database;
 
-import common.Seat;
+import common.*;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -16,16 +16,52 @@ public class DatabaseMain implements Watcher {
 		/** Retirar public ->> public  WideBoxDatabaseImpl serverInstance; */
 		//DatabaseStarter dbs = new DatabaseStarter();
 
+		new DatabasePoolManager();
 
+		/*
 		ZooKeeperManager zkmanager = ZooKeeperManagerImpl.getInstace();
 		String bola = "bola";
-		zkmanager.create("/teste", bola.getBytes());
-		System.out.println("OK");
 
+		if(zkmanager.exists("/teste2", null))
+			System.out.println("ENCONTREI O TESTE2");
+
+		zkmanager.createPersistent("/teste", bola.getBytes());
+		System.out.println("CRIEI O TESTE");
+		zkmanager.createEphemeral("/teste2", bola.getBytes());
+		System.out.println("CRIEI O TESTE2");
 
 		byte[] r = zkmanager.getData("/teste", new DatabaseMain());
 		System.out.println(new String (r, "UTF-8"));
+
+		if(zkmanager.exists("/teste", null))
+			System.out.println("ENCONTREI O TESTE");
+
 		zkmanager.delete("/teste");
+
+		if(!zkmanager.exists("/teste", null))
+			System.out.println("ELIMINEI O TESTE");
+
+		if(zkmanager.exists("/teste2", null))
+			System.out.println("ENCONTREI O TESTE2");
+			*/
+
+/*
+		DatabaseProperties dbp = new DatabaseProperties();
+		InstanceManager instanceManager = InstanceManager.getInstance();
+		int numberOfDatabases = instanceManager.getServers(InstanceType.DATABASE).size();
+		int numberOfTheaters = (dbp.getNumberOfTheaters() / numberOfDatabases);
+
+		for(int lastTheater, i = 1; ; i++) {
+			lastTheater = (numberOfTheaters * i) - 1;
+			if(!zkmanager.exists("/database", null))
+				zkmanager.create("/database", null);
+			if (!zkmanager.exists("/database/" + lastTheater, null)) {
+				Debugger.log("CRIOU!");
+				zkmanager.create("/database/" + lastTheater, Utilities.getOwnIp().getBytes());
+				break;
+			}
+		}
+*/
 
 		/*
 		Seat[][] seats = dbs.serverInstance.getTheatersInfo(1);
@@ -38,7 +74,7 @@ public class DatabaseMain implements Watcher {
 	@Override
 	public void process(WatchedEvent watchedEvent) {
 		System.out.println("ENTREI");
-		//ZooKeeperManager zkmanager = ZooKeeperManagerImpl.getInstace();
+		//DatabasePoolManager zkmanager = ZooKeeperManagerImpl.getInstace();
 
 	}
 }

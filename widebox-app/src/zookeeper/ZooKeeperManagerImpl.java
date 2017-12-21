@@ -35,12 +35,18 @@ public class ZooKeeperManagerImpl implements ZooKeeperManager {
     }
 
     @Override
-    public void create(String path, byte[] data) throws KeeperException, InterruptedException {
+    public void createPersistent(String path, byte[] data) throws KeeperException, InterruptedException {
         zkeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
         Debugger.log("Node " + path + " created successfully");
     }
 
     @Override
+    public void createEphemeral(String path, byte[] data)  throws KeeperException, InterruptedException {
+        zkeeper.create(path, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        Debugger.log("Node " + path + " created successfully");
+    }
+
+        @Override
     public void setData(String path, byte[] data) throws KeeperException, InterruptedException {
         zkeeper.setData(path, data, zkeeper.exists(path, true).getVersion());
         Debugger.log("Node " + path + " updated successfully");
@@ -55,6 +61,11 @@ public class ZooKeeperManagerImpl implements ZooKeeperManager {
     public void delete(String path) throws KeeperException, InterruptedException {
         zkeeper.delete(path, zkeeper.exists(path, true).getVersion());
         Debugger.log("Node " + path + " was deleted successfully");
+    }
+
+    @Override
+    public boolean exists(String path, Watcher watcher) throws KeeperException, InterruptedException {
+        return zkeeper.exists(path, watcher) != null;
     }
 
     /**
