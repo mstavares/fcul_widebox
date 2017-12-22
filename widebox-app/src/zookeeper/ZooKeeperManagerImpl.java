@@ -5,6 +5,8 @@ import common.InstanceManager;
 import common.InstanceType;
 import org.apache.zookeeper.*;
 
+import java.util.List;
+
 public class ZooKeeperManagerImpl implements ZooKeeperManager {
 
     private static final ZooKeeperManagerImpl INSTANCE = new ZooKeeperManagerImpl();
@@ -66,6 +68,16 @@ public class ZooKeeperManagerImpl implements ZooKeeperManager {
     @Override
     public boolean exists(String path, Watcher watcher) throws KeeperException, InterruptedException {
         return zkeeper.exists(path, watcher) != null;
+    }
+
+    @Override
+    public List<String> getChildren(String path, Watcher watcher) throws KeeperException, InterruptedException {
+        return zkeeper.getChildren(path, watcher);
+    }
+
+    @Override
+    public void registerWatcher(Watcher watcher) throws KeeperException, InterruptedException {
+        zkeeper.register(watcher);
     }
 
     /**
