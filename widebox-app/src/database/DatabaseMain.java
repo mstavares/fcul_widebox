@@ -9,7 +9,7 @@ import zookeeper.ZooKeeperManagerImpl;
 
 import java.io.IOException;
 
-public class DatabaseMain implements Watcher {
+public class DatabaseMain {
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
 		//WideBoxDatabaseImpl wbi = new WideBoxDatabaseImpl();
@@ -17,6 +17,8 @@ public class DatabaseMain implements Watcher {
 		//DatabaseStarter dbs = new DatabaseStarter();
 
 		new DatabasePoolManager();
+
+		Thread.sleep(60 * 1000);
 
 		/*
 		ZooKeeperManager zkmanager = ZooKeeperManagerImpl.getInstace();
@@ -71,10 +73,4 @@ public class DatabaseMain implements Watcher {
 
 	}
 
-	@Override
-	public void process(WatchedEvent watchedEvent) {
-		System.out.println("ENTREI");
-		//DatabasePoolManager zkmanager = ZooKeeperManagerImpl.getInstace();
-
-	}
 }

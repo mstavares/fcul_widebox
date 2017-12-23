@@ -4,7 +4,7 @@ import common.Debugger;
 import common.InstanceManager;
 import common.InstanceType;
 import common.Utilities;
-import exceptions.NoBackupZnodeException;
+import exceptions.BackupServerNotAvailableException;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -12,8 +12,6 @@ import zookeeper.ZooKeeperManager;
 import zookeeper.ZooKeeperManagerImpl;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class DatabasePoolManager implements Watcher {
@@ -22,8 +20,10 @@ public class DatabasePoolManager implements Watcher {
     private static final String DATABASE_ZNODE = ROOT_ZNODE + "/database";
     private static final String DATABASE_ZNODE_DIR = ROOT_ZNODE + "/database/";
     private ZooKeeperManager zkmanager = ZooKeeperManagerImpl.getInstace();
-    private String myZnode;
+    private String backupIpAddress;
     private String backupZnode;
+    private String myZnode;
+
 
     DatabasePoolManager() {
         try {
@@ -33,21 +33,14 @@ public class DatabasePoolManager implements Watcher {
         }
     }
 
-    public String getBackupZnode() {
-        return backupZnode;
+    public String getBackupIpAddress() throws BackupServerNotAvailableException {
+        if(backupIpAddress != null) {
+            return backupIpAddress;
+        } else {
+            throw new BackupServerNotAvailableException("Backup server not available");
+        }
     }
 
-    public String getMyZnode() {
-        return myZnode;
-    }
-
-    public String getBackupZnodePath() {
-        return DATABASE_ZNODE_DIR + backupZnode;
-    }
-
-    public String getMyZnodePath() {
-        return DATABASE_ZNODE_DIR + myZnode;
-    }
 
     /**
      * Inicializa a árvore de znodes relativa as bases de dados e cria o seu proprio znode
@@ -62,12 +55,21 @@ public class DatabasePoolManager implements Watcher {
             myZnode = String.valueOf((numberOfTheaters * i) - 1);
             String fullZnodeToCreate = DATABASE_ZNODE_DIR + myZnode;
             if (!zkmanager.exists(fullZnodeToCreate, null)) {
-                zkmanager.createEphemeral(fullZnodeToCreate, Utilities.getOwnIp().getBytes());
+                zkmanager.createEphemeral(fullZnodeToCreate, fetchMyIpAddress().getBytes());
                 Debugger.log("Criei o meu znode " + fullZnodeToCreate);
-                computeZnodeBackup(createWatchAndFetchChildrens());
+                List<String> znodes = fetchDatabaseZnodes();
+                computeZnodeBackup(numberOfTheaters, numberOfDatabases, i);
+                checkZnodeBackupIpAddress();
+                printZnodes(znodes);
                 break;
             }
         }
+    }
+
+    private String fetchMyIpAddress() {
+        String ipAddress = Utilities.getOwnIp();
+        Debugger.log("My ip address is " + ipAddress);
+        return ipAddress;
     }
 
     /**
@@ -85,45 +87,32 @@ public class DatabasePoolManager implements Watcher {
     }
 
     /**
-     * Faz um watch a arvore DATABASE_ZNODE -> /widebox/database e devolve os znodes dessa arvore
+     * Devolve os znodes existentes em /widebox/database
      */
-    private List<String> createWatchAndFetchChildrens() throws KeeperException, InterruptedException {
-        return zkmanager.getChildren(DATABASE_ZNODE, this);
+    private List<String> fetchDatabaseZnodes() throws KeeperException, InterruptedException {
+        return zkmanager.getChildren(DATABASE_ZNODE, null);
     }
 
     /**
      * Vai calcular o znode que vai servir de backup / secundario
      */
-    private void computeZnodeBackup(List<String> databaseZnodes) throws KeeperException, InterruptedException {
-        try {
-            List<Integer> sortedDatabaseZnodes = convertToIntegerAndSort(databaseZnodes);
-            int myZnodeIndex = sortedDatabaseZnodes.indexOf(Integer.parseInt(myZnode));
-            int backupZnodeIndex = computeIndexOfZnodeBackup(sortedDatabaseZnodes, myZnodeIndex);
-            backupZnode = databaseZnodes.get(backupZnodeIndex);
-        } catch (NoBackupZnodeException e) {
-            Debugger.log(e.getMessage());
-        }
-    }
-
-    /**
-     * Devolve o indice do znode de backup / secundario
-     */
-    private int computeIndexOfZnodeBackup(List<Integer> databaseZnodes, int myZnodeIndex) throws NoBackupZnodeException {
-        if(databaseZnodes.size() > 1) {
-            int lastZnodeIndex = databaseZnodes.size() - 1;
-            int nextZnodeIndex = myZnodeIndex + 1;
-            return nextZnodeIndex <= lastZnodeIndex ? nextZnodeIndex : 0;
+    private void computeZnodeBackup(int numberOfTheaters, int numberOfDatabases, int i) throws KeeperException, InterruptedException {
+        if(i == numberOfDatabases) {
+            backupZnode = String.valueOf(numberOfTheaters - 1);
         } else {
-            throw new NoBackupZnodeException("There is only on znode on /widebox/database");
+            backupZnode = String.valueOf((numberOfTheaters * (i + 1)) - 1);
         }
-
+        Debugger.log("My backup server is " + backupZnode);
     }
 
-    private List<Integer> convertToIntegerAndSort(List<String> databaseZnodes) {
-        List<Integer> sortedList = new ArrayList<>();
-        for(String znode : databaseZnodes) sortedList.add(Integer.valueOf(znode));
-        Collections.sort(sortedList);
-        return sortedList;
+    private void checkZnodeBackupIpAddress() throws KeeperException, InterruptedException {
+        if(zkmanager.exists(DATABASE_ZNODE_DIR + backupZnode, this)) {
+            backupIpAddress = new String(zkmanager.getData(DATABASE_ZNODE_DIR + backupZnode, null));
+            Debugger.log("Backup server ip address is " + backupIpAddress);
+        } else {
+            backupIpAddress = null;
+            Debugger.log("Backup server is not available");
+        }
     }
 
     /**
@@ -142,15 +131,16 @@ public class DatabasePoolManager implements Watcher {
             else
                 Debugger.log("-- " + znode + " --");
         }
+
         Debugger.log("++++++++++++++++++++++++++++++++++");
     }
-
 
     @Override
     public void process(WatchedEvent watchedEvent) {
         Debugger.log("Watch event!");
         try {
-            List<String> znodes = createWatchAndFetchChildrens();
+            List<String> znodes = fetchDatabaseZnodes();
+            checkZnodeBackupIpAddress();
             printZnodes(znodes);
         } catch (KeeperException | InterruptedException e) {
             e.printStackTrace();
