@@ -21,8 +21,8 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 
 
 	WideBoxDatabaseImpl() throws IOException, ClassNotFoundException {
-		databaseManager = new DatabaseManager();
 		registerService();
+		databaseManager = new DatabaseManager();
 	}
 
 	private void registerService() {

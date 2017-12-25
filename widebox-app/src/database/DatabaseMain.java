@@ -14,11 +14,17 @@ public class DatabaseMain {
 	public static void main(String[] args) throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
 		//WideBoxDatabaseImpl wbi = new WideBoxDatabaseImpl();
 		/** Retirar public ->> public  WideBoxDatabaseImpl serverInstance; */
-		//DatabaseStarter dbs = new DatabaseStarter();
+		DatabaseStarter dbs = new DatabaseStarter();
 
-		new DatabasePoolManager();
+		Thread.sleep(20 * 1000);
 
-		Thread.sleep(60 * 1000);
+		Seat[][] seats = dbs.serverInstance.getTheatersInfo(1);
+		dbs.serverInstance.acceptReservedSeat(1, 1, 0,0);
+		seats = dbs.serverInstance.getTheatersInfo(1);
+
+		//new DatabasePoolManager();
+
+		//Thread.sleep(60 * 1000);
 
 		/*
 		ZooKeeperManager zkmanager = ZooKeeperManagerImpl.getInstace();

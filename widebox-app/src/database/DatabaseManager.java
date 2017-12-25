@@ -23,6 +23,8 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	/** This object is used to save requests in memory and also in file */
 	private FileManager fileManager;
 
+	private DatabaseSynchronizer databaseSynchronizer;
+
 	DatabaseManager() throws IOException, ClassNotFoundException {
 		properties = new DatabaseProperties();
 		
@@ -30,7 +32,9 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		
 		fileManager = new FileManager(properties);
 		database = fileManager.restoreDatabase();
-		
+
+		databaseSynchronizer = new DatabaseSynchronizer();
+
 		timeoutManager = new TimeoutManager(this, properties.getTimeoutValue());
 		timeoutManager.runRepeatly();
 	}
@@ -59,12 +63,20 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		if(seat.isFree()) {
 			//TODO stuff de TFD para tornar isto mais eficiente?
 			try {
-				fileManager.appendAcceptActionToLog(theaterId, clientId, row, column);
+				boolean isReplicated = databaseSynchronizer.sendToBackupServer(theaterId, clientId, row, column);
+				if(isReplicated) {
+					fileManager.appendAcceptActionToLog(theaterId, clientId, row, column);
+					seat.setOccupied(clientId);
+					Debugger.log("Seat accepted successfully");
+					return true;
+				} else {
+					Debugger.log("This entry was not replicated");
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			seat.setOccupied(clientId);
-			return true;
+		} else {
+			Debugger.log("This seat is not free.");
 		}
 		return false;
 	}
