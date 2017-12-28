@@ -178,7 +178,7 @@ class FileManager {
 		File bakFile = new File(DATABASE_BAK_PATH);
 		File logFile = new File(LOG_PATH);
 
-		/*
+		
 		if ( datFile.exists() ){
 			if ( logFile.exists() ){
 				if ( bakFile.exists() ){
@@ -225,7 +225,7 @@ class FileManager {
 				}
 			}
 		}
-		*/
+		
 
 		database = createEmptyDatabase();
 		Debugger.log("Restored Database from files sucessfully.");

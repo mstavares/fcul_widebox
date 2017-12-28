@@ -22,6 +22,7 @@ import common.Server;
 import common.TimeoutManager;
 import database.WideBoxDatabase;
 import exceptions.FullTheaterException;
+import exceptions.NotOwnerException;
 
 
 public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxServer, SeatTimeoutListener {
@@ -39,6 +40,9 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 	/** Server server properties object */
 	private ServerProperties properties;
+	
+	private ServerPoolManager lifeguard;
+	private Map<String, String> servers;
 	
 	private int[] lastFreeSeat;
 
@@ -90,7 +94,8 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		InstanceManager instanceManager = InstanceManager.getInstance();
 		instanceSelector = InstanceSelector.getInstance();
 		database = getRemoteDatabaseObjects(instanceManager.getServers(InstanceType.DATABASE));
-		new ServerPoolManager();
+		servers = new HashMap<>();
+		lifeguard = new ServerPoolManager(servers);
 		registerService();
 		properties = new ServerProperties();
 		reservationMap = new HashMap<>();
@@ -132,8 +137,12 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 
 	@Override
-	public Seat[][] getTheaterInfo(int theaterId, int clientId) throws RemoteException, FullTheaterException{
+	public Seat[][] getTheaterInfo(int theaterId, int clientId) throws RemoteException, FullTheaterException, NotOwnerException{
 		Debugger.log("Got info request for theather " + theaterId + " from clientID " + clientId);
+		if(!lifeguard.checkTheater(theaterId)) {
+			Debugger.log("Not responsible for this server");
+			throw new NotOwnerException("This server is not responsible for that theater");
+		}
 		Seat[][] seats = database.get(instanceSelector.getInstanceServingTheater(theaterId, InstanceType.DATABASE)).getTheatersInfo(theaterId);
 		if(!clientHasReservation(clientId)) {
 			Place seat = pickFreeSeat(seats, theaterId);
@@ -151,7 +160,11 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 	
 	@Override
-	public synchronized boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
+	public synchronized boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException, NotOwnerException{
+		if(!lifeguard.checkTheater(theaterId)) {
+			Debugger.log("Not responsible for this server");
+			throw new NotOwnerException("This server is not responsible for that theater");
+		}
 		if (clientHasReservation(clientId)) {
 			cancelReservation(clientId);
 		}	
@@ -203,8 +216,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	private boolean clientHasReservation(int clientId) {
 		return reservationMap.containsKey(clientId);
 	}
-
-
+	
 	@Override
 	public void onSeatTimeout(int clientId) {
 		try {
@@ -225,6 +237,11 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		} catch (NotBoundException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public Map<String, String> getServerList() throws RemoteException {
+		return servers;
 	}
 
 }
