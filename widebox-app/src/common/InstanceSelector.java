@@ -47,8 +47,8 @@ public class InstanceSelector {
 	}
 	
 	
-	public void updateInstances(InstanceType instanceType, Map<String, String> serverList) {
-		instanceManager.updateInstances(instanceType, serverList);
+	public void updateInstances(InstanceType instanceType, Map<String, Server> map) {
+		instanceManager.updateInstances(instanceType, map);
 	}
 	
 }

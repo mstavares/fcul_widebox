@@ -67,14 +67,13 @@ public class InstanceManager {
 	}
 
 
-	public void updateInstances(InstanceType instanceType, Map<String, String> serverList) {
+	public void updateInstances(InstanceType instanceType, Map<String, Server> map) {
 		List<Server> newServers = new ArrayList<Server>();
-		int size = serverList.keySet().size();
+		int size = map.keySet().size();
 		
 		for (int i = 0; i < size; i++) {
-			newServers.add( new Server(serverList.get(i), 1090) );
+			newServers.add( map.get(i + "") );
 		}
-		//TODO porta hardcoded
 		//TODO possiveis problemas por estar a criar novos objetos Server? might need to make equals and hashcore
 		//TODO fix this mess
 		
