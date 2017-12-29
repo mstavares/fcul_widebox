@@ -1,60 +1,44 @@
 package client.text;
 
 import java.rmi.RemoteException;
-import java.util.Map;
-import java.util.Random;
 import java.util.Scanner;
 
-import client.WideBoxClient;
-import exceptions.FullTheaterException;
+import client.ClientWorker;
+import client.ClientWorker.Result;
 
 public class TrafficGenerator {
 
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
-		int numClients;		
+		boolean work = true;
 		
-		System.out.println("Insert the number of clients to use:");
-		numClients = sc.nextInt();
+		System.out.println("Insert the number of theaters to use:");
+		int numTeathers = sc.nextInt();
 		
-		for (int clientId = 1; clientId <= numClients; clientId++){
-			new Thread(new ClientRunnable(clientId)).start();
+		System.out.println("Insert the number of clients to create each second:");
+		int numClients = sc.nextInt();
+		
+		System.out.println("Do you want to confirm reservations? (Y/N)");
+		boolean confirm = (sc.next().equals("Y") ? true : false);
+		
+		
+		ClientWorker clientWorker = ClientWorker.getInstance();
+		boolean newTheaters = true;
+		while(work) {
+			System.out.println("----------");
+			try {
+				Result r = clientWorker.sendRequests(numClients, numTeathers, confirm, newTheaters);
+				System.out.println("Requests completed this second: " + r.getRequestsCompleted().length);
+				System.out.println("Previous requests completed now: " + r.getPreviousRequests().length);
+				System.out.println("Number of failed requests: " + r.getFailedRequests());
+			} catch (RemoteException e) {
+				System.out.println("Error connecting to the server.");
+			}
+			newTheaters = false;
+			System.out.println("----------");
 		}
 		
 		sc.close();
 	}
 	
-	
-	private static class ClientRunnable implements Runnable {
-		
-		private int clientId;
-
-		public ClientRunnable(int clientId) {
-			this.clientId = clientId;
-		}
-
-		@Override
-		public void run() {
-			
-			try {
-				WideBoxClient client = new WideBoxClient(clientId);
-				
-				Map<String, Integer>  theaterList = client.getTheaters();
-				
-				client.getTheaterInfo( new Random().nextInt(theaterList.size()) );
-				
-				if (client.acceptReservedSeat() )
-					System.out.println("Client " + clientId + ": Accept the reserved seat.");
-				else
-					System.out.println("Client " + clientId + ": Error accepting reserved seat.");
-			} catch (RemoteException e) {
-				System.out.println("Client " + clientId + ": Error connecting to the server.");
-			} catch (FullTheaterException e) {
-				System.out.println("Client " + clientId + ": Error: Full theater.");
-			}
-			
-		}
-		
-	}
-
 }
