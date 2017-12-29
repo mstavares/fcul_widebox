@@ -23,9 +23,9 @@ public class ServerPoolManager implements Watcher {
     private ZooKeeperManager zkmanager = ZooKeeperManagerImpl.getInstace();
     private String myZnode;
     private int watching;
-    private Map<String,String> servers;
+    private Map<String,Server> servers;
     
-    ServerPoolManager(Map<String,String> servers) {
+    ServerPoolManager(Map<String,Server> servers) {
     	this.servers = servers;
     	try {
             initialize();
@@ -48,11 +48,11 @@ public class ServerPoolManager implements Watcher {
                 Debugger.log("Criei o meu znode " + znodeToCreate);
                 if(i != 1)
                 	watching = i - 1;
-                servers.put(SERVER_ZNODE_DIR + myZnode, new String(server.getBytes()));
+                servers.put(SERVER_ZNODE_DIR + myZnode, server);
                 createWatch();
                 break;
             } else {
-            	String value = new String(zkmanager.getData(SERVER_ZNODE_DIR + myZnode, null));
+            	Server value = Server.buildObject(zkmanager.getData(SERVER_ZNODE_DIR + myZnode, null));
             	servers.put(SERVER_ZNODE_DIR + myZnode, value);
             }
     	}
@@ -70,7 +70,7 @@ public class ServerPoolManager implements Watcher {
                 Debugger.log("Criei o meu znode " + znodeToCreate);
                 if(i != 1)
                 	watching = i - 1;
-                addToServers(myZnode, new String(server.getBytes()));
+                addToServers(myZnode,server);
                 break;
             }
         }
@@ -112,8 +112,12 @@ public class ServerPoolManager implements Watcher {
     	servers.remove(key);
     }
     
-    private void addToServers(String key, String value) {
-    	servers.put(key, value);
+    private void addToServers(String key, byte[] bytes) {
+    	servers.put(key, Server.buildObject(bytes));
+    }
+    
+    private void addToServers(String key, Server server) {
+    	servers.put(key, server);
     }
     
     public boolean checkTheater(int theaterId) {
@@ -138,10 +142,9 @@ public class ServerPoolManager implements Watcher {
         			removeFromServers(temp[3]);
         		}
         	} else if(watchedEvent.getType() == Watcher.Event.EventType.NodeCreated) {
-        		String val = new String(zkmanager.getData(watchedEvent.getPath(), null));
         		String[] temp = watchedEvent.getPath().split("/");
     			removeFromServers(temp[3]);
-        		addToServers(temp[3], val);
+        		addToServers(temp[3], zkmanager.getData(watchedEvent.getPath(), null));
         	}
         	createWatch();
         } catch (KeeperException | InterruptedException e) {

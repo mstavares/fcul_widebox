@@ -5,6 +5,7 @@ import java.rmi.RemoteException;
 import java.util.Map;
 
 import common.Seat;
+import common.Server;
 import exceptions.FullTheaterException;
 import exceptions.NotOwnerException;
 
@@ -20,6 +21,6 @@ public interface WideBoxServer extends Remote{
 
 	boolean cancelReservation(int clientId) throws RemoteException;
 	
-	Map<String, String> getServerList() throws RemoteException;
+	Map<String, Server> getServerList() throws RemoteException;
 	
 }

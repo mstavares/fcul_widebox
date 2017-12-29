@@ -7,11 +7,9 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import common.Debugger;
 import common.InstanceManager;
@@ -42,9 +40,9 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	private ServerProperties properties;
 	
 	private ServerPoolManager lifeguard;
-	private Map<String, String> servers;
+	private Map<String, Server> servers;
 	
-	private int[] lastFreeSeat;
+	// private int[] lastFreeSeat;
 
 	private class Place {
 		private int row;
@@ -101,7 +99,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		reservationMap = new HashMap<>();
 		/** """Cache""" the theather map for faster responde for getTheaters requests **/
 		theatherMap = database.get(instanceSelector.getRandomInstance(InstanceType.DATABASE)).getTheaters();
-		lastFreeSeat = new int[theatherMap.size()];
+		// lastFreeSeat = new int[theatherMap.size()];
 		
 		Debugger.log("Application server is ready");
 	}
@@ -240,7 +238,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	}
 
 	@Override
-	public Map<String, String> getServerList() throws RemoteException {
+	public Map<String, Server> getServerList() throws RemoteException {
 		return servers;
 	}
 

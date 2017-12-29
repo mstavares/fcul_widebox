@@ -4,6 +4,10 @@ import java.io.*;
 
 public class Server implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3807517481480418421L;
 	private String ip;
 	private int port;
 	
