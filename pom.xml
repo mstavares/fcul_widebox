@@ -29,6 +29,8 @@
 			tested stacks. -->
 		<version.jboss.bom>8.0.0.Final</version.jboss.bom>
 		<version.wildfly>8.1.0.Final</version.wildfly>
+		<version.wildfly.swarm>2017.12.1</version.wildfly.swarm>
+		<failOnMissingWebXml>false</failOnMissingWebXml>
 
 		<!-- other plugin versions -->
 		<version.compiler.plugin>3.1</version.compiler.plugin>
@@ -42,27 +44,5 @@
 		<!-- maven-compiler-plugin -->
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<maven.compiler.source>1.8</maven.compiler.source>
-	</properties>
-  
-  	<dependencyManagement>
-		<dependencies>
-			<!-- JBoss Bill of Materials (BOM) -->
-			<dependency>
-				<groupId>org.wildfly.bom</groupId>
-				<artifactId>jboss-javaee-7.0-with-tools</artifactId>
-				<version>${version.jboss.bom}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>org.wildfly.bom</groupId>
-				<artifactId>jboss-javaee-7.0-with-hibernate</artifactId>
-				<version>${version.jboss.bom}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-  
+	</properties>  
 </project>
