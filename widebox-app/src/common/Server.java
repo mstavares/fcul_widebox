@@ -51,8 +51,9 @@ public class Server implements Serializable {
 		try {
 			ByteArrayInputStream bis = new ByteArrayInputStream(data);
 			ObjectInput in = new ObjectInputStream(bis);
+			Server res = (Server) in.readObject();
 			in.close();
-			return (Server) in.readObject();
+			return res;
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
