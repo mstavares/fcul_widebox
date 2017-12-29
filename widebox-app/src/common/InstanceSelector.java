@@ -1,6 +1,7 @@
 package common;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -31,10 +32,8 @@ public class InstanceSelector {
 	public Server getInstanceServingTheater(int theaterId, InstanceType instanceType){
 		List<Server> servers = instanceManager.getServers(instanceType);
 		
-		//TODO tornar isto sequencial?
 		return servers.get( theaterId % servers.size() );
 	}
-	
 	
 	
 	/**
@@ -45,6 +44,11 @@ public class InstanceSelector {
 		Random rd = new Random();
 		
 		return servers.get( rd.nextInt(servers.size()) );
+	}
+	
+	
+	public void updateInstances(InstanceType instanceType, Map<String, String> serverList) {
+		instanceManager.updateInstances(instanceType, serverList);
 	}
 	
 }

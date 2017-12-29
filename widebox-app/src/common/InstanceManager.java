@@ -65,5 +65,20 @@ public class InstanceManager {
 	public List<Server> getServers(InstanceType type){
 		return servers.get(type);
 	}
+
+
+	public void updateInstances(InstanceType instanceType, Map<String, String> serverList) {
+		List<Server> newServers = new ArrayList<Server>();
+		int size = serverList.keySet().size();
+		
+		for (int i = 0; i < size; i++) {
+			newServers.add( new Server(serverList.get(i), 1090) );
+		}
+		//TODO porta hardcoded
+		//TODO possiveis problemas por estar a criar novos objetos Server? might need to make equals and hashcore
+		//TODO fix this mess
+		
+		servers.put(instanceType, newServers);
+	}
 	
 }

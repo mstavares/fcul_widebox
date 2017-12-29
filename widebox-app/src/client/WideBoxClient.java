@@ -7,11 +7,13 @@ import java.rmi.registry.Registry;
 import java.util.HashMap;
 import java.util.Map;
 
+import common.Debugger;
 import common.InstanceSelector;
 import common.InstanceType;
 import common.Seat;
 import common.Server;
 import exceptions.FullTheaterException;
+import exceptions.NotOwnerException;
 import server.WideBoxServer;
 
 public class WideBoxClient {
@@ -33,6 +35,7 @@ public class WideBoxClient {
 			
 			Registry registry = LocateRegistry.getRegistry(initialServer.getIp(), initialServer.getPort() );
 			WideBoxServer wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
+			//TODO try again if it fails?
 			
 			servers.put(initialServer, wideBoxServer);
 		} catch (Exception e) {
@@ -49,13 +52,27 @@ public class WideBoxClient {
 
 	public Seat[][] getTheaterInfo(int theaterId) throws RemoteException, FullTheaterException{
 		currentReservation = getServerServing(theaterId);
-		return currentReservation.getTheaterInfo(theaterId, id);
+		try {
+			return currentReservation.getTheaterInfo(theaterId, id);
+		} catch (NotOwnerException e) {
+			Debugger.log("Contacted wrong server, fetching list");
+			instanceSelector.updateInstances(INSTANCE_TYPE, currentReservation.getServerList() );
+			//TODO ciclo infinito? add timeouts?
+			return getTheaterInfo(theaterId);
+		}
 	}
 
 
 	public boolean reserveSeat(int theaterId, int row, int column) throws RemoteException{
 		currentReservation = getServerServing(theaterId);
-		return currentReservation.reserveSeat(theaterId, id, row, column);
+		try {
+			return currentReservation.reserveSeat(theaterId, id, row, column);
+		} catch (NotOwnerException e) {
+			Debugger.log("Contacted wrong server, fetching list");
+			instanceSelector.updateInstances(INSTANCE_TYPE, currentReservation.getServerList() );
+			//TODO ciclo infinito? add timeouts?
+			return reserveSeat(theaterId, row, column);
+		}
 	}
 
 
