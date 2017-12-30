@@ -18,6 +18,7 @@ import common.InstanceType;
 import common.Seat;
 import common.Server;
 import common.TimeoutManager;
+import common.Utilities;
 import database.WideBoxDatabase;
 import exceptions.FullTheaterException;
 import exceptions.NotOwnerException;
@@ -137,7 +138,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	@Override
 	public Seat[][] getTheaterInfo(int theaterId, int clientId) throws RemoteException, FullTheaterException, NotOwnerException{
 		Debugger.log("Got info request for theather " + theaterId + " from clientID " + clientId);
-		if(!lifeguard.checkTheater(theaterId)) {
+		if(!instanceSelector.getInstanceServingTheater(theaterId, InstanceType.APP).getIp().equals(Utilities.getOwnIp())) {
 			Debugger.log("Not responsible for this server");
 			throw new NotOwnerException("This server is not responsible for that theater");
 		}
@@ -159,7 +160,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	
 	@Override
 	public synchronized boolean reserveSeat(int theaterId, int clientId, int row, int column) throws RemoteException, NotOwnerException{
-		if(!lifeguard.checkTheater(theaterId)) {
+		if(!instanceSelector.getInstanceServingTheater(theaterId, InstanceType.APP).getIp().equals(Utilities.getOwnIp())) {
 			Debugger.log("Not responsible for this server");
 			throw new NotOwnerException("This server is not responsible for that theater");
 		}

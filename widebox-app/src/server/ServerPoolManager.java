@@ -10,6 +10,7 @@ import org.apache.zookeeper.Watcher;
 
 import common.Debugger;
 import common.InstanceManager;
+import common.InstanceSelector;
 import common.InstanceType;
 import common.Server;
 import common.Utilities;
@@ -20,6 +21,7 @@ public class ServerPoolManager implements Watcher {
 	private static final String ROOT_ZNODE = "/widebox";
     private static final String SERVER_ZNODE = ROOT_ZNODE + "/appserver";
     private static final String SERVER_ZNODE_DIR = ROOT_ZNODE + "/appserver/";
+    private InstanceSelector instanceSelector = InstanceSelector.getInstance();
     private ZooKeeperManager zkmanager = ZooKeeperManagerImpl.getInstace();
     private String myZnode;
     private int watching;
@@ -48,12 +50,14 @@ public class ServerPoolManager implements Watcher {
                 Debugger.log("Criei o meu znode " + znodeToCreate);
                 if(i != 1)
                 	watching = i - 1;
-                servers.put(SERVER_ZNODE_DIR + myZnode, server);
+                servers.put(myZnode, server);
+                instanceSelector.updateInstances(InstanceType.APP, servers);
                 createWatch();
                 break;
             } else {
             	Server value = Server.buildObject(zkmanager.getData(SERVER_ZNODE_DIR + myZnode, null));
-            	servers.put(SERVER_ZNODE_DIR + myZnode, value);
+            	servers.put(myZnode, value);
+            	instanceSelector.updateInstances(InstanceType.APP, servers);
             }
     	}
     }
@@ -110,21 +114,17 @@ public class ServerPoolManager implements Watcher {
     
     private void removeFromServers(String key) {
     	servers.remove(key);
+    	instanceSelector.updateInstances(InstanceType.APP, servers);
     }
     
     private void addToServers(String key, byte[] bytes) {
     	servers.put(key, Server.buildObject(bytes));
+    	instanceSelector.updateInstances(InstanceType.APP, servers);
     }
     
     private void addToServers(String key, Server server) {
     	servers.put(key, server);
-    }
-    
-    public boolean checkTheater(int theaterId) {
-    	InstanceManager instanceManager = InstanceManager.getInstance();
-    	int numberTheaters = instanceManager.getServers(InstanceType.APP).size();
-    	int owner = theaterId % numberTheaters;
-    	return owner == Integer.parseInt(myZnode);
+    	instanceSelector.updateInstances(InstanceType.APP, servers);
     }
 
     @Override
