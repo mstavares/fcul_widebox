@@ -48,7 +48,7 @@ public class ServerPoolManager implements Watcher {
             if (!zkmanager.exists(znodeToCreate, null)) {
                 zkmanager.createEphemeral(znodeToCreate, server.getBytes());
                 Debugger.log("Criei o meu znode " + znodeToCreate);
-                if(i != 1)
+                if(i != 0)
                 	watching = i - 1;
                 servers.put(myZnode, server);
                 instanceSelector.updateInstances(InstanceType.APP, servers);

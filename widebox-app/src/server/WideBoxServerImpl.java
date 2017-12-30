@@ -8,6 +8,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -138,6 +139,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	@Override
 	public Seat[][] getTheaterInfo(int theaterId, int clientId) throws RemoteException, FullTheaterException, NotOwnerException{
 		Debugger.log("Got info request for theather " + theaterId + " from clientID " + clientId);
+		printServers();
 		if(!instanceSelector.getInstanceServingTheater(theaterId, InstanceType.APP).getIp().equals(Utilities.getOwnIp())) {
 			Debugger.log("Not responsible for this server");
 			throw new NotOwnerException("This server is not responsible for that theater");
@@ -241,6 +243,13 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	@Override
 	public Map<String, Server> getServerList() throws RemoteException {
 		return servers;
+	}
+	
+	private void printServers() {
+		List<Map.Entry<String, Server>> entries = new LinkedList<>(servers.entrySet());
+		for(Map.Entry<String, Server> entry: entries) {
+			System.out.println(entry.getKey() + " " + entry.getValue().getIp());
+		}
 	}
 
 }
