@@ -7,7 +7,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class Utilities {
-
+	
+	private static int port;
+	
     public static String getFileSeparator() {
         return System.getProperty("file.separator");
     }
@@ -34,5 +36,15 @@ public abstract class Utilities {
 			}
 		}
 		return "0.0.0.0";
+	}
+	
+	
+	public static int getPort() {
+		return port;
+	}
+	
+	
+	public static void setPort(int porta) {
+		port = porta;
 	}
 }

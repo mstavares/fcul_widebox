@@ -8,6 +8,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
 import common.InstanceControl;
+import common.Utilities;
 
 public class DatabaseStarter extends UnicastRemoteObject implements InstanceControl {
 
@@ -28,7 +29,7 @@ public class DatabaseStarter extends UnicastRemoteObject implements InstanceCont
 
 	private void startRegistry() {
 		try {
-			Registry registry = LocateRegistry.createRegistry(1098);
+			Registry registry = LocateRegistry.createRegistry(Utilities.getPort());
 			registry.bind("InstanceControl", this);
 		} catch (RemoteException | AlreadyBoundException e) {
 			e.printStackTrace();

@@ -12,6 +12,17 @@ import java.io.IOException;
 public class DatabaseMain {
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
+		
+		try {
+			if (args.length > 1)
+				Utilities.setPort( Integer.parseInt(args[0]) );
+			else
+				Utilities.setPort(1098);
+		}catch (Exception e) {
+			System.out.println("Error with the port given.");
+			System.exit(-1);
+		}
+
 		//WideBoxDatabaseImpl wbi = new WideBoxDatabaseImpl();
 		/** Retirar public ->> public  WideBoxDatabaseImpl serverInstance; */
 		DatabaseStarter dbs = new DatabaseStarter();

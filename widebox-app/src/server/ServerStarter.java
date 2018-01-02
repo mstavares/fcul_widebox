@@ -10,6 +10,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 import common.Debugger;
 import common.InstanceControl;
+import common.Utilities;
 
 public class ServerStarter extends UnicastRemoteObject implements InstanceControl {
 
@@ -30,7 +31,7 @@ public class ServerStarter extends UnicastRemoteObject implements InstanceContro
 	 */
 	private void startRegistry() throws RemoteException {
 		try {
-			Registry registry = LocateRegistry.createRegistry(1090);
+			Registry registry = LocateRegistry.createRegistry( Utilities.getPort() );
 			registry.bind("InstanceControl", this);
 		} catch (RemoteException | AlreadyBoundException e) {
 			e.printStackTrace();
