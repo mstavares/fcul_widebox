@@ -38,7 +38,6 @@ public class ServerPoolManager implements Watcher {
     
     private void initialize() throws IOException, KeeperException, InterruptedException {
         createRoot();
-        registerWatcher();
         InstanceManager instanceManager = InstanceManager.getInstance();
     	Server server = fetchMyServerData(instanceManager);
     	int numberOfServers = instanceManager.getServers(InstanceType.APP).size();
@@ -105,11 +104,8 @@ public class ServerPoolManager implements Watcher {
     }
     
     private void createWatch() throws KeeperException, InterruptedException {
+    	zkmanager.setData(SERVER_ZNODE, null);
         zkmanager.exists(SERVER_ZNODE, this);
-    }
-    
-    private void registerWatcher() throws KeeperException, InterruptedException {
-    	zkmanager.registerWatcher(this);
     }
     
     private void removeFromServers(String key) {
@@ -130,6 +126,8 @@ public class ServerPoolManager implements Watcher {
     @Override
     public void process(WatchedEvent watchedEvent) {
         Debugger.log("Watch event!");
+        // ALL this is wrong since the event will not have these types
+        /**
         try {
         	if(watchedEvent.getType() == Watcher.Event.EventType.NodeDeleted) {
         		if(!zkmanager.exists(SERVER_ZNODE_DIR + String.valueOf(watching), null)) {
@@ -150,5 +148,7 @@ public class ServerPoolManager implements Watcher {
         } catch (KeeperException | InterruptedException e) {
             e.printStackTrace();
         }
+        
+        **/
     }
 }
