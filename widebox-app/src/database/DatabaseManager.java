@@ -32,7 +32,8 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		
 		fileManager = new FileManager(properties);
 		database = fileManager.restoreDatabase();
-
+		//TODO should this still be here?
+		
 		databaseSynchronizer = new DatabaseSynchronizer();
 
 		timeoutManager = new TimeoutManager(this, properties.getTimeoutValue());
@@ -62,8 +63,10 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		Seat seat = database.get(theaterId)[row][column];
 		if(seat.isFree()) {
 			//TODO stuff de TFD para tornar isto mais eficiente?
+			//TODO verificar que é meu
 			try {
 				boolean isReplicated = databaseSynchronizer.sendToBackupServer(theaterId, clientId, row, column);
+				//TODO isto funciona quando o secundario está a executar a função?
 				if(isReplicated) {
 					fileManager.appendAcceptActionToLog(theaterId, clientId, row, column);
 					seat.setOccupied(clientId);
@@ -93,6 +96,12 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 			e.printStackTrace();
 		}
 		*/
+	}
+
+	public synchronized Map<Integer, Seat[][]> fetchEntries(int newEnd, String newSecondary) {
+		databaseSynchronizer.updateRange(newEnd - 1);
+		databaseSynchronizer.setNewSecondary(newSecondary);
+		return database;
 	}
 
 }

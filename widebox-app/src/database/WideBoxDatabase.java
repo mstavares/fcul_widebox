@@ -17,6 +17,8 @@ public interface WideBoxDatabase extends Remote {
 
 	boolean acceptReservedSeat(int theaterId, int clientId, int row, int column) throws RemoteException;
 
+	Map<Integer, Seat[][]> fetchEntries(int newEnd, String newSecondary);
+
 	// public boolean cancelReservation(int theaterId, int clientId, int row, int column) throws RemoteException;
 
 }

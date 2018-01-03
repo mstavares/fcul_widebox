@@ -119,7 +119,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	
 	private void registerService() throws RemoteException {
 		try {
-			Registry registry = LocateRegistry.getRegistry(1090);
+			Registry registry = LocateRegistry.getRegistry( Utilities.getPort() );
 			registry.bind("WideBoxServer", this);
 			Debugger.log("Successfully binded Application Server to Starter Registry");
 		} catch (RemoteException | AlreadyBoundException e) {

@@ -4,19 +4,24 @@ import common.*;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.EventType;
 import zookeeper.ZooKeeperManager;
 import zookeeper.ZooKeeperManagerImpl;
 
 import java.io.IOException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.List;
+import java.util.Map;
 
-class DatabasePoolManager implements Watcher {
+class DatabasePoolManager{
 
     private static final String ROOT_ZNODE = "/widebox";
     private static final String DATABASE_ZNODE = ROOT_ZNODE + "/database";
     private static final String DATABASE_ZNODE_DIR = ROOT_ZNODE + "/database/";
-    private ZooKeeperManager zkmanager = ZooKeeperManagerImpl.getInstace();
+    private ZooKeeperManager zkmanager;
     private DatabasePoolManagerListener listener;
 
     private Server backupServer;
@@ -25,6 +30,8 @@ class DatabasePoolManager implements Watcher {
 
 
     DatabasePoolManager(DatabasePoolManagerListener listener) {
+    	zkmanager = ZooKeeperManagerImpl.getInstace();
+    	
         try {
             this.listener = listener;
             initialize();
@@ -40,44 +47,84 @@ class DatabasePoolManager implements Watcher {
     private void initialize() throws IOException, KeeperException, InterruptedException {
         DatabaseProperties dbp = new DatabaseProperties();
         InstanceManager instanceManager = InstanceManager.getInstance();
-        Server server = fetchMyServerData(instanceManager);
-        int numberOfDatabases = instanceManager.getServers(InstanceType.DATABASE).size();
-        int numberOfTheaters = (dbp.getNumberOfTheaters() / numberOfDatabases);
+        Server server = fetchMyServerData();
         createRoot();
-        for(int i = 1; i <= numberOfDatabases; i++) {
-            myZnode = String.valueOf(computeMyLastTheater(numberOfTheaters, i));
-            String fullZnodeToCreate = DATABASE_ZNODE_DIR + myZnode;
-            if (!zkmanager.exists(fullZnodeToCreate, null)) {
-                zkmanager.createEphemeral(fullZnodeToCreate, server.getBytes());
-                Debugger.log("Criei o meu znode " + fullZnodeToCreate);
-                List<String> znodes = fetchDatabaseZnodes();
-                computeZnodeBackup(numberOfTheaters, numberOfDatabases, i);
-                checkZnodeBackupIpAddress();
-                printZnodes(znodes);
-                break;
+        
+        List<String> databases = fetchDatabaseZnodes();
+        printZnodes(databases);
+        
+        if (databases.size() > 0) {
+        	//there are already znodes, trying to find someone to share with
+        	int max = 0;
+        	String nodeName = "";
+        	for (String db: databases) {
+        		String[] range = db.split(";");
+        		int theaterAmount = Integer.parseInt(range[1]) - Integer.parseInt(range[0]);
+        		//TODO hm, maybe problemas por o limite ser inclusive? possivelmente should be exclusive
+        		if (theaterAmount >= max) {
+        			nodeName = db;
+        			max = theaterAmount;
+        		}
+        	}
+        	int start = Integer.getInteger( nodeName.split(";")[1]) - (max / 2) ;
+        	int end = Integer.getInteger( nodeName.split(";")[1]) ;
+        	
+        	//is it fine to watch my primary here?
+        	Server primary = Server.buildObject( zkmanager.getData(nodeName, new PrimaryWatcher() ) );
+        	
+        	//contact primary and ask for stuff
+            try {
+                Debugger.log("Contacting primary: " + primary.toString());
+                Registry registry = LocateRegistry.getRegistry(primary.getIp(), primary.getPort());
+                WideBoxDatabase myPrimary = (WideBoxDatabase) registry.lookup("WideBoxDatabase");
+                
+                myZnode = start + ";" + end;
+                Map<Integer, Seat[][]> entries = myPrimary.fetchEntries(start, myZnode);
+                //TODO update this locally
+            } catch (RemoteException | NotBoundException e) {
+            	Debugger.log("Failed to contact primary");
+                e.printStackTrace();
+                //System.exit?
             }
+        	
+        	myZnode = start + ";" + end;
+        	
+        	//set the following node as my secondary
+        	//TODO find a way to tell him the range is updated
+            String secondary = getServerByRange(databases, end + 1);
+        	listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(secondary, null) ));
+        	
+        }else {
+        	//I'm the first node, taking everything for me and wait for a secondary
+        	myZnode = 0 + ";" + ( dbp.getNumberOfTheaters() - 1 ) ;
+        	zkmanager.getChildren(DATABASE_ZNODE, new GetSecondaryWatcher() );
         }
+        
+        //creating my nznode
+        String fullZnodeToCreate = DATABASE_ZNODE_DIR + myZnode;
+        if (!zkmanager.exists(fullZnodeToCreate, null)) {
+            zkmanager.createEphemeral(fullZnodeToCreate, server.getBytes());
+            Debugger.log("Criei o meu znode " + fullZnodeToCreate);
+        }
+        
     }
 
-    private int computeMyLastTheater(int numberOfTheaters, int i) {
-        return (numberOfTheaters * i) - 1;
-    }
+    private String getServerByRange(List<String> servers, int start) {
+    	String first = null, server = null;
+    	
+    	for (String s: servers) {
+    		if (s.startsWith("0"))
+    			first = s;
+    		else if (s.startsWith(start + ""))
+    			server = s;
+    	}
+    	
+		return server == null ? first : server;
+	}
 
-    private int computeMyBackupLastTheater(int numberOfTheaters, int i) {
-        return (numberOfTheaters * (i + 1)) - 1;
-    }
-
-    private Server fetchMyServerData(InstanceManager instanceManager) {
+    private Server fetchMyServerData() {
         String myIpAddress = Utilities.getOwnIp();
-        List<Server> databaseServers = instanceManager.getServers(InstanceType.DATABASE);
-        for(Server server : databaseServers) {
-            if(server.getIp().equals(myIpAddress)) {
-                Debugger.log(server.toString());
-                return server;
-            }
-        }
-        /* TODO lancar excecao em vez de retornar null? */
-        return null;
+        return new Server(myIpAddress, Utilities.getPort() );
     }
 
 
@@ -95,6 +142,7 @@ class DatabasePoolManager implements Watcher {
         }
     }
 
+    
     /**
      * Devolve os znodes existentes em /widebox/database
      */
@@ -102,10 +150,11 @@ class DatabasePoolManager implements Watcher {
         return zkmanager.getChildren(DATABASE_ZNODE, null);
     }
 
+
     /**
      * Vai calcular o znode que vai servir de backup / secundario
      */
-    private void computeZnodeBackup(int numberOfTheaters, int numberOfDatabases, int i) throws KeeperException, InterruptedException {
+    /*private void computeZnodeBackup(int numberOfTheaters, int numberOfDatabases, int i) throws KeeperException, InterruptedException {
         int lastBackupTheater;
         if(i == numberOfDatabases) {
             lastBackupTheater = numberOfTheaters - 1;
@@ -117,6 +166,7 @@ class DatabasePoolManager implements Watcher {
         listener.onReceiveMyTheaterRange(lastBackupTheater);
         Debugger.log("My backup server is " + backupZnode);
     }
+
 
     private void checkZnodeBackupIpAddress() throws KeeperException, InterruptedException {
         try {
@@ -131,7 +181,7 @@ class DatabasePoolManager implements Watcher {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     /**
      * >>> Para efeitos de debugging <<<
@@ -153,15 +203,42 @@ class DatabasePoolManager implements Watcher {
         Debugger.log("++++++++++++++++++++++++++++++++++");
     }
 
-    @Override
-    public void process(WatchedEvent watchedEvent) {
-        Debugger.log("Watch event!");
-        try {
-            List<String> znodes = fetchDatabaseZnodes();
-            checkZnodeBackupIpAddress();
-            printZnodes(znodes);
-        } catch (KeeperException | InterruptedException e) {
-            e.printStackTrace();
-        }
+    
+    private class GetSecondaryWatcher implements Watcher{
+		@Override
+		public void process(WatchedEvent event) {
+			if (event.getType() == EventType.NodeCreated ) {
+				if (event.getPath() != myZnode) {
+					try {
+						listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(event.getPath(), null) ));
+					} catch (RemoteException | KeeperException | InterruptedException e) {
+						Debugger.log("Error setting secondary");
+						e.printStackTrace();
+					}
+				}
+			}
+		}
     }
+    
+    
+    private class PrimaryWatcher implements Watcher{
+		@Override
+		public void process(WatchedEvent event) {
+			Debugger.log("Watch event!");
+			if (event.getType() == EventType.NodeDeleted ) {
+				//ver se o primary ainda está vivo
+				//TODO my primary died
+				//redifinir o meu range
+				//enviar as coisas do meu antigo primario ao meu secundario
+				
+			}
+		}
+    }
+
+
+	public void setNewName(String newName) throws KeeperException, InterruptedException {
+        zkmanager.createEphemeral(newName, fetchMyServerData().getBytes() );
+		zkmanager.delete(myZnode);
+        Debugger.log("Criei o meu znode " + newName);
+	}
 }

@@ -9,16 +9,19 @@ import java.util.List;
 
 public class ZooKeeperManagerImpl implements ZooKeeperManager {
 
-    private static final ZooKeeperManagerImpl INSTANCE = new ZooKeeperManagerImpl();
     private static ZooKeeperConnection zkConnection;
     private static ZooKeeper zkeeper;
 
     private ZooKeeperManagerImpl() {
         initialize();
     }
-
+    
+	private static class StaticHolder {
+		static final ZooKeeperManagerImpl INSTANCE = new ZooKeeperManagerImpl();
+	}
+	
     public static ZooKeeperManager getInstace() {
-        return INSTANCE;
+        return StaticHolder.INSTANCE;
     }
 
     /**

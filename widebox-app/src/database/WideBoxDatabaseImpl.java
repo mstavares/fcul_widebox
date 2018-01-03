@@ -11,6 +11,7 @@ import java.util.Map;
 
 import common.Debugger;
 import common.Seat;
+import common.Utilities;
 
 
 public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxDatabase {
@@ -27,7 +28,7 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 
 	private void registerService() {
 		try {
-			Registry registry = LocateRegistry.getRegistry(1098);
+			Registry registry = LocateRegistry.getRegistry(Utilities.getPort());
 			registry.bind("WideBoxDatabase", this);
 			Debugger.log("Database server is ready");
 		} catch (RemoteException | AlreadyBoundException e) {
@@ -65,7 +66,6 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 	}
 	 */
 	
-	//TODO analisar isto tambem
 	public void unbind() {
 		try {
 			Registry registry = LocateRegistry.getRegistry(1098);
@@ -74,6 +74,17 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 			e.printStackTrace();
 		}
 		
+	}
+	
+	
+	/**
+	 * Returns everything I have on my database, 
+	 * sets the newNode as my secondary,
+	 * and cuts my database in half
+	 */
+	@Override
+	public synchronized Map<Integer, Seat[][]> fetchEntries(int newEnd, String newSecondary) {
+		return databaseManager.fetchEntries(newEnd, newSecondary);
 	}
 
 }
