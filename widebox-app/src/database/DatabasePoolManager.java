@@ -99,7 +99,7 @@ class DatabasePoolManager{
             }
         	
         	//set the following node as my secondary:
-            String secondary = getServerByStart(databases, end + 1);
+            String secondary = getServerByStart(end + 1);
         	listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(DATABASE_ZNODE_DIR + secondary, new SecondaryWatcher() ) ));
         	
         }else {
@@ -118,23 +118,31 @@ class DatabasePoolManager{
         
     }
 
-    private String getServerByStart(List<String> servers, int start) {
-    	String first = null, server = null;
-    	
-    	for (String s: servers) {
-    		if (s.startsWith("0"))
-    			first = s;
-    		else if (s.startsWith(start + ""))
-    			server = s;
-    	}
-    	
-		return server == null ? first : server;
+    private String getServerByStart(int start) {
+		try {
+			List<String> servers = zkmanager.getChildren(DATABASE_ZNODE, null);
+			
+	    	String first = null, server = null;
+	    	
+	    	for (String s: servers) {
+	    		if (s.startsWith("0"))
+	    			first = s;
+	    		else if (s.startsWith(start + ""))
+	    			server = s;
+	    	}
+	    	
+			return server == null ? first : server;
+		} catch (KeeperException | InterruptedException e) {
+			Debugger.log("Error getting children");
+			e.printStackTrace();
+			return "";
+		}
 	}
     
     
     private String getServerByEnd(int end) {
 		try {
-			List<String> servers = zkmanager.getChildren(DATABASE_ZNODE, null);
+			List<String> servers = zkmanager.getChildren(DATABASE_ZNODE, new PrimaryWatcher() );
 			
 	    	String last = null, server = null;
 	    	int max = 0;
@@ -211,6 +219,7 @@ class DatabasePoolManager{
     private class GetSecondaryWatcher implements Watcher{
 		@Override
 		public void process(WatchedEvent event) {
+			Debugger.log("Get Secondary Watcher event!");
 			if (event.getType() == EventType.NodeCreated ) {
 				if (event.getPath() != myZnode) {
 					try {
@@ -228,7 +237,7 @@ class DatabasePoolManager{
     private class PrimaryWatcher implements Watcher{
 		@Override
 		public void process(WatchedEvent event) {
-			Debugger.log("Watch event!");
+			Debugger.log("Primary Watcher event!");
 			if (event.getType() == EventType.NodeDeleted ) {
 				if (!isOnline(myPrimary)) {
 					try {
@@ -255,12 +264,12 @@ class DatabasePoolManager{
     private class SecondaryWatcher implements Watcher{
 		@Override
 		public void process(WatchedEvent event) {
-			Debugger.log("Watch event!");
+			Debugger.log("Secondary Watcher event!");
 			if (event.getType() == EventType.NodeDeleted ) {
 				//TODO maybe sleep enquanto o secundario recria o nó para evitar race conditions?
 				int secondaryStart = Integer.parseInt( myZnode.split(";")[1] ) + 1;
 				try {
-					String newSecondary = getServerByStart(zkmanager.getChildren(DATABASE_ZNODE, null), secondaryStart);
+					String newSecondary = getServerByStart(secondaryStart);
 					listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(DATABASE_ZNODE_DIR + newSecondary, new SecondaryWatcher()) ));
 					
 					listener.updateSecondary();
@@ -275,8 +284,9 @@ class DatabasePoolManager{
     
     
 	public void setNewName(String newName) throws KeeperException, InterruptedException {
-        zkmanager.createEphemeral(DATABASE_ZNODE_DIR + newName, fetchMyServerData().getBytes() );
+		zkmanager.createEphemeral(DATABASE_ZNODE_DIR + newName, fetchMyServerData().getBytes() );
 		zkmanager.delete(DATABASE_ZNODE_DIR + myZnode);
+		myZnode = newName;
         Debugger.log("Criei o meu znode " + newName);
 	}
 	
