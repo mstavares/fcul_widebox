@@ -7,9 +7,9 @@ import java.util.Map;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.EventType;
 
 import common.Debugger;
-import common.InstanceManager;
 import common.InstanceSelector;
 import common.InstanceType;
 import common.Server;
@@ -17,18 +17,20 @@ import common.Utilities;
 import zookeeper.ZooKeeperManager;
 import zookeeper.ZooKeeperManagerImpl;
 
-public class ServerPoolManager implements Watcher {
+public class ServerPoolManager{
 	private static final String ROOT_ZNODE = "/widebox";
     private static final String SERVER_ZNODE = ROOT_ZNODE + "/appserver";
     private static final String SERVER_ZNODE_DIR = ROOT_ZNODE + "/appserver/";
-    private InstanceSelector instanceSelector = InstanceSelector.getInstance();
-    private ZooKeeperManager zkmanager = ZooKeeperManagerImpl.getInstace();
-    private String myZnode;
-    private int watching;
+    private InstanceSelector instanceSelector;
+    private ZooKeeperManager zkmanager;
+    private int myZnode;
+    private Server myServer;
     private Map<String,Server> servers;
     
     ServerPoolManager(Map<String,Server> servers) {
     	this.servers = servers;
+    	instanceSelector = InstanceSelector.getInstance();
+    	zkmanager = ZooKeeperManagerImpl.getInstace();
     	try {
             initialize();
         } catch (IOException | InterruptedException | KeeperException e) {
@@ -38,59 +40,42 @@ public class ServerPoolManager implements Watcher {
     
     private void initialize() throws IOException, KeeperException, InterruptedException {
         createRoot();
-        InstanceManager instanceManager = InstanceManager.getInstance();
-    	Server server = fetchMyServerData(instanceManager);
-    	int numberOfServers = instanceManager.getServers(InstanceType.APP).size();
-    	for(int i = 0; i < numberOfServers; i++) {
-        	myZnode = String.valueOf(i);
-            String znodeToCreate = SERVER_ZNODE_DIR + myZnode;
-            if (!zkmanager.exists(znodeToCreate, null)) {
-                zkmanager.createEphemeral(znodeToCreate, server.getBytes());
-                Debugger.log("Criei o meu znode " + znodeToCreate);
-                if(i != 0)
-                	watching = i - 1;
-                servers.put(myZnode, server);
-                instanceSelector.updateInstances(InstanceType.APP, servers);
-                createWatch();
-                break;
-            } else {
-            	Server value = Server.buildObject(zkmanager.getData(SERVER_ZNODE_DIR + myZnode, null));
-            	servers.put(myZnode, value);
-            	instanceSelector.updateInstances(InstanceType.APP, servers);
-            }
+    	myServer = fetchMyServerData();
+    	List<String> serversInZK = zkmanager.getChildren(SERVER_ZNODE, new DirectoryWatcher() );
+    	
+    	myZnode = getNextId(serversInZK);
+    	
+        String fullZnodeToCreate = SERVER_ZNODE_DIR + myZnode;
+        if (!zkmanager.exists(fullZnodeToCreate, null)) {
+            zkmanager.createEphemeral(fullZnodeToCreate, myServer.getBytes());
+            Debugger.log("Criei o meu znode " + fullZnodeToCreate);
+        }
+        
+    	if (myZnode != 0) {
+    		//já há mais servers, fazer watch ao que está antes de mim:
+    		zkmanager.getData(SERVER_ZNODE_DIR + (myZnode-1), new PreviousWatcher() );
     	}
     }
     
-    private void createNode() throws KeeperException, InterruptedException {
-    	InstanceManager instanceManager = InstanceManager.getInstance();
-    	Server server = fetchMyServerData(instanceManager);
-    	int numberOfServers = instanceManager.getServers(InstanceType.APP).size();
-    	for(int i = 0; i < numberOfServers; i++) {
-        	myZnode = String.valueOf(i);
-            String znodeToCreate = SERVER_ZNODE_DIR + myZnode;
-            if (!zkmanager.exists(znodeToCreate, null)) {
-                zkmanager.createEphemeral(znodeToCreate, server.getBytes());
-                Debugger.log("Criei o meu znode " + znodeToCreate);
-                if(i != 1)
-                	watching = i - 1;
-                addToServers(myZnode,server);
-                break;
-            }
-        }
+    
+    private int getNextId(List<String> serversInZK) {
+    	if (serversInZK.size() == 0)
+    		return 0;
+    	
+    	int max = 0;
+    	for (String s: serversInZK)
+    		if (Integer.parseInt(s) > max)
+    			max = Integer.parseInt(s);
+    	
+    	return max;
+	}
+    
+    
+    private Server fetchMyServerData() {
+        String myIpAddress = Utilities.getOwnIp();
+        return new Server(myIpAddress, Utilities.getPort() );
     }
     
-    private Server fetchMyServerData(InstanceManager instanceManager) {
-        String myIpAddress = Utilities.getOwnIp();
-        List<Server> applicationServers = instanceManager.getServers(InstanceType.APP);
-        for(Server server : applicationServers) {
-            if(server.getIp().equals(myIpAddress)) {
-                Debugger.log(server.toString());
-                return server;
-            }
-        }
-        /* TODO lancar excecao em vez de retornar null? */
-        return null;
-    }
     
     private void createRoot() throws KeeperException, InterruptedException {
         if (!zkmanager.exists(ROOT_ZNODE, null)) {
@@ -103,52 +88,69 @@ public class ServerPoolManager implements Watcher {
         }
     }
     
-    private void createWatch() throws KeeperException, InterruptedException {
-    	zkmanager.setData(SERVER_ZNODE, null);
-        zkmanager.exists(SERVER_ZNODE, this);
-    }
     
-    private void removeFromServers(String key) {
-    	servers.remove(key);
+    private void removeEverythingFromServerList() {
+    	servers.clear();
     	instanceSelector.updateInstances(InstanceType.APP, servers);
     }
     
-    private void addToServers(String key, byte[] bytes) {
-    	servers.put(key, Server.buildObject(bytes));
-    	instanceSelector.updateInstances(InstanceType.APP, servers);
-    }
     
     private void addToServers(String key, Server server) {
     	servers.put(key, server);
     	instanceSelector.updateInstances(InstanceType.APP, servers);
     }
-
-    @Override
-    public void process(WatchedEvent watchedEvent) {
-        Debugger.log("Watch event!");
-        // ALL this is wrong since the event will not have these types
-        /**
-        try {
-        	if(watchedEvent.getType() == Watcher.Event.EventType.NodeDeleted) {
-        		if(!zkmanager.exists(SERVER_ZNODE_DIR + String.valueOf(watching), null)) {
-        			removeFromServers(String.valueOf(watching));
-        			zkmanager.delete(SERVER_ZNODE_DIR + myZnode);
-        			removeFromServers(myZnode);
-        			createNode();
-        		} else {
-        			String[] temp = watchedEvent.getPath().split("/");
-        			removeFromServers(temp[3]);
-        		}
-        	} else if(watchedEvent.getType() == Watcher.Event.EventType.NodeCreated) {
-        		String[] temp = watchedEvent.getPath().split("/");
-    			removeFromServers(temp[3]);
-        		addToServers(temp[3], zkmanager.getData(watchedEvent.getPath(), null));
-        	}
-        	createWatch();
-        } catch (KeeperException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        
-        **/
+    
+    
+    private class DirectoryWatcher implements Watcher{
+		@Override
+		public void process(WatchedEvent event) {
+			Debugger.log("Directory Watcher event!");
+			try {
+				//TODO tornar isto mais eficiente
+				removeEverythingFromServerList();
+				List<String> serversInZK = zkmanager.getChildren(SERVER_ZNODE, new DirectoryWatcher());
+				for (String s: serversInZK)
+					addToServers(s, Server.buildObject(zkmanager.getData(SERVER_ZNODE_DIR + s, null)));
+			} catch (KeeperException | InterruptedException e) {
+				Debugger.log("Error updating list");
+				e.printStackTrace();
+			}
+		}
     }
+    
+    
+    
+    private class PreviousWatcher implements Watcher{
+		@Override
+		public void process(WatchedEvent event) {
+			Debugger.log("Previous Watcher event!");
+			if (event.getType() == EventType.NodeDeleted ) {
+				if (myZnode > 0) {
+					try {
+						myZnode--;
+						zkmanager.createEphemeral(SERVER_ZNODE_DIR + myZnode, myServer.getBytes() );
+						zkmanager.delete(SERVER_ZNODE_DIR + (myZnode + 1));
+						
+						sleep(2000);
+						if (myZnode > 0)
+							zkmanager.getData(SERVER_ZNODE_DIR + (myZnode + 1), new PreviousWatcher() );
+					} catch (KeeperException | InterruptedException e) {
+						Debugger.log("Error changing node name");
+						e.printStackTrace();
+					}
+					
+				}
+			}
+		}
+    }
+    
+    
+    private void sleep(int ms) {
+    	try {
+			Thread.sleep(ms);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+    }
+    
 }

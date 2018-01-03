@@ -58,6 +58,7 @@ public class WideBoxClient {
 			Debugger.log("Contacted wrong server, fetching list");
 			instanceSelector.updateInstances(INSTANCE_TYPE, currentReservation.getServerList() );
 			//TODO ciclo infinito? add timeouts?
+			//TODO tentar ligar a um novo servidor se falhar?
 			return getTheaterInfo(theaterId);
 		}
 	}
@@ -71,6 +72,7 @@ public class WideBoxClient {
 			Debugger.log("Contacted wrong server, fetching list");
 			instanceSelector.updateInstances(INSTANCE_TYPE, currentReservation.getServerList() );
 			//TODO ciclo infinito? add timeouts?
+			//TODO tentar ligar a um novo servidor se falhar?
 			return reserveSeat(theaterId, row, column);
 		}
 	}
