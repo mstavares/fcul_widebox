@@ -13,14 +13,12 @@ import java.util.List;
 import java.util.Map;
 
 import common.Debugger;
-import common.InstanceManager;
 import common.InstanceSelector;
 import common.InstanceType;
 import common.Seat;
 import common.Server;
 import common.TimeoutManager;
 import common.Utilities;
-import database.WideBoxDatabase;
 import exceptions.FullTheaterException;
 import exceptions.NotOwnerException;
 
@@ -28,8 +26,7 @@ import exceptions.NotOwnerException;
 public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxServer, SeatTimeoutListener {
 
 	private static final long serialVersionUID = 6332295204270798892L;
-	/** HashMap with all remote database objects **/
-	private HashMap<Server, WideBoxDatabase> database;
+
 	private InstanceSelector instanceSelector;
 
 	/** Map to keep track of Open Seat Reservations **/
@@ -91,31 +88,19 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 	public WideBoxServerImpl() throws IOException, RemoteException, NotBoundException {
 		super();
-		InstanceManager instanceManager = InstanceManager.getInstance();
 		instanceSelector = InstanceSelector.getInstance();
-		database = getRemoteDatabaseObjects(instanceManager.getServers(InstanceType.DATABASE));
 		servers = new HashMap<>();
 		lifeguard = new ServerPoolManager(servers);
 		registerService();
 		properties = new ServerProperties();
 		reservationMap = new HashMap<>();
 		/** """Cache""" the theather map for faster responde for getTheaters requests **/
-		theatherMap = database.get(instanceSelector.getRandomInstance(InstanceType.DATABASE)).getTheaters();
+		theatherMap = lifeguard.getDatabaseServing(0).getTheaters(); //TODO make it search for a random instance
 		// lastFreeSeat = new int[theatherMap.size()];
 		
 		Debugger.log("Application server is ready");
 	}
 	
-	private HashMap<Server, WideBoxDatabase> getRemoteDatabaseObjects(List<Server> servers) throws RemoteException, NotBoundException {
-		HashMap<Server, WideBoxDatabase> res = new HashMap<>();
-		Registry registry;
-		for (Server s : servers) {
-			registry = LocateRegistry.getRegistry(s.getIp(), s.getPort());
-			res.put(s, (WideBoxDatabase) registry.lookup("WideBoxDatabase"));
-			Debugger.log("Added Database Server " + s.getIp() + " to Remote Objects Map");
-		}
-		return res;		
-	}
 	
 	private void registerService() throws RemoteException {
 		try {
@@ -144,7 +129,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 			Debugger.log("Not responsible for this server");
 			throw new NotOwnerException("This server is not responsible for that theater");
 		}
-		Seat[][] seats = database.get(instanceSelector.getInstanceServingTheater(theaterId, InstanceType.DATABASE)).getTheatersInfo(theaterId);
+		Seat[][] seats = lifeguard.getDatabaseServing(theaterId).getTheatersInfo(theaterId);
 		if(!clientHasReservation(clientId)) {
 			Place seat = pickFreeSeat(seats, theaterId);
 			if(!reserveSeat(theaterId, clientId, seat.getRow(), seat.getColumn())) {
@@ -183,7 +168,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 			return false;
 		}
 		// I'm sorry. I'm so sorry.
-		if (database.get(instanceSelector.getInstanceServingTheater(reservation.getTheaterId(), InstanceType.DATABASE)).acceptReservedSeat(reservation.getTheaterId(), clientId, reservation.getPlace().getRow(), reservation.getPlace().getColumn())) {
+		if (lifeguard.getDatabaseServing(reservation.getTheaterId()).acceptReservedSeat(reservation.getTheaterId(), clientId, reservation.getPlace().getRow(), reservation.getPlace().getColumn())) {
 			reservation.getTimeoutManager().stop();
 			reservationMap.remove(clientId);
 			Debugger.log("Confirmed reservation for clientId " + clientId);

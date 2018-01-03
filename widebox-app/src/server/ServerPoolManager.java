@@ -1,8 +1,14 @@
 package server;
 
 import java.io.IOException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -14,6 +20,7 @@ import common.InstanceSelector;
 import common.InstanceType;
 import common.Server;
 import common.Utilities;
+import database.WideBoxDatabase;
 import zookeeper.ZooKeeperManager;
 import zookeeper.ZooKeeperManagerImpl;
 
@@ -21,18 +28,24 @@ public class ServerPoolManager{
 	private static final String ROOT_ZNODE = "/widebox";
     private static final String SERVER_ZNODE = ROOT_ZNODE + "/appserver";
     private static final String SERVER_ZNODE_DIR = ROOT_ZNODE + "/appserver/";
+    private static final String DATABASE_ZNODE = ROOT_ZNODE + "/database";
+    private static final String DATABASE_ZNODE_DIR = ROOT_ZNODE + "/database/";
     private InstanceSelector instanceSelector;
     private ZooKeeperManager zkmanager;
     private int myZnode;
     private Server myServer;
     private Map<String,Server> servers;
     
+	/** HashMap with all remote database objects **/
+	private HashMap<String, WideBoxDatabase> database;
+	
     ServerPoolManager(Map<String,Server> servers) {
     	this.servers = servers;
     	instanceSelector = InstanceSelector.getInstance();
     	zkmanager = ZooKeeperManagerImpl.getInstace();
     	try {
             initialize();
+            initializeDBSearch();
         } catch (IOException | InterruptedException | KeeperException e) {
             e.printStackTrace();
         }
@@ -152,5 +165,90 @@ public class ServerPoolManager{
 			e.printStackTrace();
 		}
     }
+    
+    
+    
+    private void initializeDBSearch() throws IOException, KeeperException, InterruptedException {
+    	createRootDB();
+    	List<String> dbsInZK = zkmanager.getChildren(DATABASE_ZNODE, new DatabaseWatcher() );
+    	updateDatabase(dbsInZK);
+    }
+    
+
+	/**
+     * Inicializa a árvore DATABASE_ZNODE -> /widebox/database
+     */
+    private void createRootDB() throws KeeperException, InterruptedException {
+        if (!zkmanager.exists(ROOT_ZNODE, null)) {
+            zkmanager.createPersistent(ROOT_ZNODE, null);
+            zkmanager.createPersistent(DATABASE_ZNODE, null);
+            Debugger.log("Znode created " + DATABASE_ZNODE);
+        } else if (!zkmanager.exists(DATABASE_ZNODE, null)) {
+            zkmanager.createPersistent(DATABASE_ZNODE, null);
+            Debugger.log("Znode created " + DATABASE_ZNODE);
+        }
+    }
+    
+    
+    
+    private class DatabaseWatcher implements Watcher{
+		@Override
+		public void process(WatchedEvent event) {
+			Debugger.log("Database Watcher event!");
+			try {
+				List<String> dbsInZK = zkmanager.getChildren(DATABASE_ZNODE, new DatabaseWatcher() );
+				updateDatabase(dbsInZK);
+			} catch (KeeperException | InterruptedException e) {
+				Debugger.log("Error getting databases");
+				e.printStackTrace();
+			}
+	    	
+		}
+    }
+    
+    
+    private void updateDatabase(List<String> dbsInZK) {
+		//TODO a lista e as ligações à db estão a ser criadas a cada atualização
+    	//precisa ser otimizada
+    	Map<String, Server> dbServers = new HashMap<String, Server>();
+    	
+    	try {
+        	for(String s: dbsInZK)
+        		dbServers.put(s, Server.buildObject(zkmanager.getData(DATABASE_ZNODE_DIR + s, null)));
+        	
+			database = getRemoteDatabaseObjects(dbServers);
+		} catch (RemoteException | NotBoundException | KeeperException | InterruptedException e) {
+			Debugger.log("Error creating remote connections to databases");
+			e.printStackTrace();
+		}
+	}
+    
+    
+    public WideBoxDatabase getDatabaseServing(int theaterId) {
+    	Set<String> keys = database.keySet();
+    	for (String s: keys) {
+    		String[] range = s.split(";");
+    		if (Integer.parseInt(range[0]) <= theaterId && Integer.parseInt(range[1]) >= theaterId)
+    			return database.get(s);
+    	}
+    	return null;
+    }
+    
+    
+	private HashMap<String, WideBoxDatabase> getRemoteDatabaseObjects(Map<String, Server> servers) throws RemoteException, NotBoundException {
+		HashMap<String, WideBoxDatabase> res = new HashMap<>();
+		Registry registry;
+		Set<String> keys = servers.keySet();
+		//TODO otmizar isto
+		for (String s : keys) {
+			Server server = servers.get(s);
+			registry = LocateRegistry.getRegistry(server.getIp(), server.getPort());
+			res.put(s, (WideBoxDatabase) registry.lookup("WideBoxDatabase"));
+			Debugger.log("Added Database Server " + server.getIp() + " to Remote Objects Map");
+		}
+		return res;		
+	}
+	
+	
     
 }
