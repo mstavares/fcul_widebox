@@ -5,6 +5,7 @@ import common.*;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class DatabaseManager implements TimeoutListener.Timeout {
 
@@ -18,7 +19,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	private DatabaseProperties properties;
 
 	/** This timeout is used to store the database in file */
-	private TimeoutManager timeoutManager;
+	//private TimeoutManager timeoutManager;
 
 	/** This object is used to save requests in memory and also in file */
 	private FileManager fileManager;
@@ -31,13 +32,12 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		loadTheaters();
 		
 		fileManager = new FileManager(properties);
-		database = fileManager.restoreDatabase();
-		//TODO should this still be here?
+		//database = fileManager.restoreDatabase();
 		
-		databaseSynchronizer = new DatabaseSynchronizer();
+		databaseSynchronizer = new DatabaseSynchronizer(this);
 
-		timeoutManager = new TimeoutManager(this, properties.getTimeoutValue());
-		timeoutManager.runRepeatly();
+		//timeoutManager = new TimeoutManager(this, properties.getTimeoutValue());
+		//timeoutManager.runRepeatly();
 	}
 
 	private void loadTheaters() {
@@ -63,21 +63,22 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		Seat seat = database.get(theaterId)[row][column];
 		if(seat.isFree()) {
 			//TODO stuff de TFD para tornar isto mais eficiente?
-			//TODO verificar que é meu
-			try {
+			//try {
 				boolean isReplicated = databaseSynchronizer.sendToBackupServer(theaterId, clientId, row, column);
-				//TODO isto funciona quando o secundario está a executar a função?
 				if(isReplicated) {
-					fileManager.appendAcceptActionToLog(theaterId, clientId, row, column);
-					seat.setOccupied(clientId);
-					Debugger.log("Seat accepted successfully");
-					return true;
+					Debugger.log("Entry replicated");
 				} else {
-					Debugger.log("This entry was not replicated");
+					Debugger.log("Entry NOT replicated (request from the primary?)");
 				}
-			} catch (IOException e) {
+				
+				//TODO if !isReplicated, verificar  se é do primario, not important for now, I guess
+				//fileManager.appendAcceptActionToLog(theaterId, clientId, row, column);
+				seat.setOccupied(clientId);
+				Debugger.log("Seat accepted successfully");
+				return true;
+			/*} catch (IOException e) {
 				e.printStackTrace();
-			}
+			}*/
 		} else {
 			Debugger.log("This seat is not free.");
 		}
@@ -87,7 +88,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 
 	@Override
 	public void timeout() {
-		/*/TODO ir fazendo writeDatabaseToFile
+		/*
 		try {
 			writeDatabaseToFile();
 			Debugger.log("A base de dados foi guardada com sucesso.");
@@ -97,11 +98,40 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		}
 		*/
 	}
-
+	
+	
 	public synchronized Map<Integer, Seat[][]> fetchEntries(int newEnd, String newSecondary) {
 		databaseSynchronizer.updateRange(newEnd - 1);
 		databaseSynchronizer.setNewSecondary(newSecondary);
+		//TODO I should give just what I used to take care of
 		return database;
+	}
+
+	public synchronized void setDatabase(Map<Integer, Seat[][]> entries) {
+		if (entries == null)
+			database = fileManager.createEmptyDatabase();
+		else {
+			database = entries;	
+		}
+	}
+	
+	
+	public synchronized void updateEntries(Map<Integer, Seat[][]> entries) {
+		Set<Integer> set = entries.keySet();
+		
+		for (Integer key: set) {
+			database.put(key, entries.get(key));
+		}
+	}
+	
+	
+	public synchronized Map<Integer, Seat[][]> fetchEntries(int start, int end){
+		Map<Integer, Seat[][]> entries = new HashMap<Integer, Seat[][]>();
+		
+		for (int i = start; i <= end; i++) 
+			entries.put(i, database.get(i));
+				
+		return entries;
 	}
 
 }

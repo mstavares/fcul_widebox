@@ -24,12 +24,16 @@ class DatabasePoolManager{
     private ZooKeeperManager zkmanager;
     private DatabasePoolManagerListener listener;
 
-    private Server backupServer;
+    //private Server backupServer;
     private String backupZnode;
     private String myZnode;
+	private DatabaseManager databaseManager;
+	private Server myPrimary;
+	private String myPrimaryZnode;
+	
 
-
-    DatabasePoolManager(DatabasePoolManagerListener listener) {
+    DatabasePoolManager(DatabasePoolManagerListener listener, DatabaseManager databaseManager) {
+    	this.databaseManager = databaseManager;
     	zkmanager = ZooKeeperManagerImpl.getInstace();
     	
         try {
@@ -46,7 +50,6 @@ class DatabasePoolManager{
      */
     private void initialize() throws IOException, KeeperException, InterruptedException {
         DatabaseProperties dbp = new DatabaseProperties();
-        InstanceManager instanceManager = InstanceManager.getInstance();
         Server server = fetchMyServerData();
         createRoot();
         
@@ -68,48 +71,54 @@ class DatabasePoolManager{
         	}
         	int start = Integer.getInteger( nodeName.split(";")[1]) - (max / 2) ;
         	int end = Integer.getInteger( nodeName.split(";")[1]) ;
+        	listener.onReceiveMyTheaterRange(start, end);
         	
-        	//is it fine to watch my primary here?
-        	Server primary = Server.buildObject( zkmanager.getData(nodeName, new PrimaryWatcher() ) );
-        	
-        	//contact primary and ask for stuff
+        	myPrimary = Server.buildObject( zkmanager.getData(nodeName, new PrimaryWatcher() ) );
+        	myPrimaryZnode = nodeName;
+        	//contact primary and ask for stuff:
             try {
-                Debugger.log("Contacting primary: " + primary.toString());
-                Registry registry = LocateRegistry.getRegistry(primary.getIp(), primary.getPort());
-                WideBoxDatabase myPrimary = (WideBoxDatabase) registry.lookup("WideBoxDatabase");
+                Debugger.log("Contacting primary: " + myPrimary.toString());
+                Registry registry = LocateRegistry.getRegistry(myPrimary.getIp(), myPrimary.getPort());
+                WideBoxDatabase primary = (WideBoxDatabase) registry.lookup("WideBoxDatabase");
                 
                 myZnode = start + ";" + end;
-                Map<Integer, Seat[][]> entries = myPrimary.fetchEntries(start, myZnode);
-                //TODO update this locally
+                
+                //creating my nznode:
+                String fullZnodeToCreate = DATABASE_ZNODE_DIR + myZnode;
+                if (!zkmanager.exists(fullZnodeToCreate, null)) {
+                    zkmanager.createEphemeral(fullZnodeToCreate, server.getBytes());
+                    Debugger.log("Criei o meu znode " + fullZnodeToCreate);
+                }
+                
+                Map<Integer, Seat[][]> entries = primary.fetchEntries(start, myZnode);
+                databaseManager.setDatabase(entries);
             } catch (RemoteException | NotBoundException e) {
             	Debugger.log("Failed to contact primary");
                 e.printStackTrace();
                 //System.exit?
             }
         	
-        	myZnode = start + ";" + end;
-        	
-        	//set the following node as my secondary
-        	//TODO find a way to tell him the range is updated
-            String secondary = getServerByRange(databases, end + 1);
-        	listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(secondary, null) ));
+        	//set the following node as my secondary:
+            String secondary = getServerByStart(databases, end + 1);
+        	listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(secondary, new SecondaryWatcher() ) ));
         	
         }else {
-        	//I'm the first node, taking everything for me and wait for a secondary
+        	//I'm the first node, taking everything for me and wait for a secondary:
         	myZnode = 0 + ";" + ( dbp.getNumberOfTheaters() - 1 ) ;
         	zkmanager.getChildren(DATABASE_ZNODE, new GetSecondaryWatcher() );
-        }
-        
-        //creating my nznode
-        String fullZnodeToCreate = DATABASE_ZNODE_DIR + myZnode;
-        if (!zkmanager.exists(fullZnodeToCreate, null)) {
-            zkmanager.createEphemeral(fullZnodeToCreate, server.getBytes());
-            Debugger.log("Criei o meu znode " + fullZnodeToCreate);
+        	databaseManager.setDatabase(null);
+        	
+            //creating my nznode:
+            String fullZnodeToCreate = DATABASE_ZNODE_DIR + myZnode;
+            if (!zkmanager.exists(fullZnodeToCreate, null)) {
+                zkmanager.createEphemeral(fullZnodeToCreate, server.getBytes());
+                Debugger.log("Criei o meu znode " + fullZnodeToCreate);
+            }
         }
         
     }
 
-    private String getServerByRange(List<String> servers, int start) {
+    private String getServerByStart(List<String> servers, int start) {
     	String first = null, server = null;
     	
     	for (String s: servers) {
@@ -121,6 +130,33 @@ class DatabasePoolManager{
     	
 		return server == null ? first : server;
 	}
+    
+    
+    private String getServerByEnd(int end) {
+		try {
+			List<String> servers = zkmanager.getChildren(DATABASE_ZNODE, null);
+			
+	    	String last = null, server = null;
+	    	int max = 0;
+	    	for (String s: servers) {
+	    		int n = Integer.parseInt(s.split(";")[0]);
+	    		if (n >= max) {
+	    			max = n;
+	    			last = s;
+	    		}
+	    		
+	    		if (s.endsWith(end + ""))
+	    			server = s;
+	    	}
+	    	
+			return server == null ? last : server;
+		} catch (KeeperException | InterruptedException e) {
+			Debugger.log("Error getting children");
+			e.printStackTrace();
+			return "";
+		}
+	}
+    
 
     private Server fetchMyServerData() {
         String myIpAddress = Utilities.getOwnIp();
@@ -152,38 +188,6 @@ class DatabasePoolManager{
 
 
     /**
-     * Vai calcular o znode que vai servir de backup / secundario
-     */
-    /*private void computeZnodeBackup(int numberOfTheaters, int numberOfDatabases, int i) throws KeeperException, InterruptedException {
-        int lastBackupTheater;
-        if(i == numberOfDatabases) {
-            lastBackupTheater = numberOfTheaters - 1;
-            backupZnode = String.valueOf(lastBackupTheater);
-        } else {
-            lastBackupTheater = computeMyBackupLastTheater(numberOfTheaters, i);
-            backupZnode = String.valueOf(lastBackupTheater);
-        }
-        listener.onReceiveMyTheaterRange(lastBackupTheater);
-        Debugger.log("My backup server is " + backupZnode);
-    }
-
-
-    private void checkZnodeBackupIpAddress() throws KeeperException, InterruptedException {
-        try {
-            if (zkmanager.exists(DATABASE_ZNODE_DIR + backupZnode, this)) {
-                backupServer = Server.buildObject(zkmanager.getData(DATABASE_ZNODE_DIR + backupZnode, null));
-                Debugger.log("Backup server data : " + backupServer.toString());
-                listener.backupServerIsAvailable(backupServer);
-            } else {
-                backupServer = null;
-                Debugger.log("Backup server is not available");
-            }
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }*/
-
-    /**
      * >>> Para efeitos de debugging <<<
      * Imprime os znodes existentes na arvore
      *      Marca com PP XX PP o proprio / primario znode.
@@ -210,7 +214,7 @@ class DatabasePoolManager{
 			if (event.getType() == EventType.NodeCreated ) {
 				if (event.getPath() != myZnode) {
 					try {
-						listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(event.getPath(), null) ));
+						listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(event.getPath(), new SecondaryWatcher() ) ));
 					} catch (RemoteException | KeeperException | InterruptedException e) {
 						Debugger.log("Error setting secondary");
 						e.printStackTrace();
@@ -226,19 +230,66 @@ class DatabasePoolManager{
 		public void process(WatchedEvent event) {
 			Debugger.log("Watch event!");
 			if (event.getType() == EventType.NodeDeleted ) {
-				//ver se o primary ainda está vivo
-				//TODO my primary died
-				//redifinir o meu range
-				//enviar as coisas do meu antigo primario ao meu secundario
+				if (!isOnline(myPrimary)) {
+					try {
+						int start = Integer.parseInt(myPrimaryZnode.split(";")[0]);
+						int end = Integer.parseInt(myZnode.split(";")[1]);
+						String newName = start + ";" + end;
+						setNewName(newName);
+						listener.onReceiveMyTheaterRange(start, end);
+					} catch (KeeperException | InterruptedException e) {
+						Debugger.log("Error changing name");
+						e.printStackTrace();
+					}
+					
+					listener.updateSecondary();
+				}
 				
+				myPrimaryZnode = getServerByEnd(Integer.parseInt(myZnode.split(";")[1]) + 1);
+				myPrimary = new Server(myPrimaryZnode.split(";")[0], Integer.parseInt(myPrimaryZnode.split(";")[1]));
 			}
 		}
     }
 
-
+    
+    private class SecondaryWatcher implements Watcher{
+		@Override
+		public void process(WatchedEvent event) {
+			Debugger.log("Watch event!");
+			if (event.getType() == EventType.NodeDeleted ) {
+				//TODO maybe sleep enquanto o secundario recria o nó para evitar race conditions?
+				int secondaryStart = Integer.parseInt( myZnode.split(";")[1] ) + 1;
+				try {
+					String newSecondary = getServerByStart(zkmanager.getChildren(DATABASE_ZNODE, null), secondaryStart);
+					listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(newSecondary, new SecondaryWatcher()) ));
+					
+					listener.updateSecondary();
+				} catch (RemoteException | KeeperException | InterruptedException e) {
+					Debugger.log("Error setting new follower");
+					e.printStackTrace();
+				}
+			}
+			//TODO é preciso recriar o watch se não for deleted event? shouldn't happen anyway
+		}
+    }
+    
+    
 	public void setNewName(String newName) throws KeeperException, InterruptedException {
         zkmanager.createEphemeral(newName, fetchMyServerData().getBytes() );
 		zkmanager.delete(myZnode);
         Debugger.log("Criei o meu znode " + newName);
 	}
+	
+	
+	private boolean isOnline(Server server) {
+		try {
+			Registry registry = LocateRegistry.getRegistry(server.getIp(), server.getPort());
+			WideBoxDatabase primary = (WideBoxDatabase) registry.lookup("WideBoxDatabase");
+			if (primary.getTheaters() != null)
+				return true;
+		} catch (Exception e) {
+		}
+        return false;
+	}
+	
 }

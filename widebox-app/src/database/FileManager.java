@@ -153,7 +153,7 @@ class FileManager {
 		}
 	}
 
-	private Map<Integer, Seat[][]> createEmptyDatabase() {
+	public Map<Integer, Seat[][]> createEmptyDatabase() {
 		Map<Integer, Seat[][]> database = new HashMap<Integer, Seat[][]>();
 		Debugger.log("Started creating empty database.");
 		for(int theater = 0; theater < properties.getNumberOfTheaters(); theater++) {

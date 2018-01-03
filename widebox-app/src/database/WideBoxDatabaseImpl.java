@@ -87,4 +87,9 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 		return databaseManager.fetchEntries(newEnd, newSecondary);
 	}
 
+	@Override
+	public synchronized void updateEntries(Map<Integer, Seat[][]> entries) {
+		databaseManager.updateEntries(entries);
+	}
+
 }

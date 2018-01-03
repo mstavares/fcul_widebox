@@ -18,11 +18,13 @@ class DatabaseSynchronizer implements DatabasePoolManagerListener {
     private WideBoxDatabase wideBoxDatabase;
     private int firstTheaterNumber;
     private int lastTheaterNumber;
+	private DatabaseManager databaseManager;
 
 
-    DatabaseSynchronizer() {
+    DatabaseSynchronizer(DatabaseManager databaseManager) {
+    	this.databaseManager = databaseManager;
     	wideBoxDatabase = null;
-    	databasePoolManager = new DatabasePoolManager(this);
+    	databasePoolManager = new DatabasePoolManager(this, databaseManager);
     }
 
     @Override
@@ -62,11 +64,10 @@ class DatabaseSynchronizer implements DatabasePoolManagerListener {
                 }
             }
             Debugger.log("Out of my range, so I will not replicate this entry");
-            //TODO throw not owner exception
         } else {
             Debugger.log("Backup server is not available");
         }
-        return true;
+        return false;
     }
     
     
@@ -92,5 +93,10 @@ class DatabaseSynchronizer implements DatabasePoolManagerListener {
 			e.printStackTrace();
 		}
 		
+	}
+
+	@Override
+	public void updateSecondary() {
+		wideBoxDatabase.updateEntries(databaseManager.fetchEntries(firstTheaterNumber, lastTheaterNumber));
 	}
 }
