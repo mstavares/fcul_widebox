@@ -27,12 +27,13 @@ public class DatabaseMain {
 		/** Retirar public ->> public  WideBoxDatabaseImpl serverInstance; */
 		DatabaseStarter dbs = new DatabaseStarter();
 
+		/**
 		Thread.sleep(20 * 1000);
 
 		Seat[][] seats = dbs.serverInstance.getTheatersInfo(1);
 		dbs.serverInstance.acceptReservedSeat(1, 1, 0,0);
 		seats = dbs.serverInstance.getTheatersInfo(1);
-
+		 **/
 		//new DatabasePoolManager();
 
 		//Thread.sleep(60 * 1000);

@@ -14,6 +14,8 @@ import org.apache.zookeeper.KeeperException;
 
 class DatabaseSynchronizer implements DatabasePoolManagerListener {
 
+	private static final String ROOT_ZNODE = "/widebox";
+    private static final String DATABASE_ZNODE_DIR = ROOT_ZNODE + "/database/";
 	private DatabasePoolManager databasePoolManager;
     private WideBoxDatabase wideBoxDatabase;
     private int firstTheaterNumber;
@@ -86,7 +88,7 @@ class DatabaseSynchronizer implements DatabasePoolManagerListener {
 		ZooKeeperManager zkmanager = ZooKeeperManagerImpl.getInstace();
 		
 		try {
-			Server secondary = Server.buildObject( zkmanager.getData(newSecondary, null) );
+			Server secondary = Server.buildObject( zkmanager.getData(DATABASE_ZNODE_DIR + newSecondary, null) );
 			backupServerIsAvailable(secondary);
 		} catch (KeeperException | InterruptedException e) {
 			Debugger.log("Error setting new secundary.");
@@ -97,6 +99,11 @@ class DatabaseSynchronizer implements DatabasePoolManagerListener {
 
 	@Override
 	public void updateSecondary() {
-		wideBoxDatabase.updateEntries(databaseManager.fetchEntries(firstTheaterNumber, lastTheaterNumber));
+		try {
+			wideBoxDatabase.updateEntries(databaseManager.fetchEntries(firstTheaterNumber, lastTheaterNumber));
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

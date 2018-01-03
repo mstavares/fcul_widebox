@@ -83,12 +83,12 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 	 * and cuts my database in half
 	 */
 	@Override
-	public synchronized Map<Integer, Seat[][]> fetchEntries(int newEnd, String newSecondary) {
+	public synchronized Map<Integer, Seat[][]> fetchEntries(int newEnd, String newSecondary) throws RemoteException {
 		return databaseManager.fetchEntries(newEnd, newSecondary);
 	}
 
 	@Override
-	public synchronized void updateEntries(Map<Integer, Seat[][]> entries) {
+	public synchronized void updateEntries(Map<Integer, Seat[][]> entries) throws RemoteException {
 		databaseManager.updateEntries(entries);
 	}
 

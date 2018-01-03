@@ -69,11 +69,11 @@ class DatabasePoolManager{
         			max = theaterAmount;
         		}
         	}
-        	int start = Integer.getInteger( nodeName.split(";")[1]) - (max / 2) ;
-        	int end = Integer.getInteger( nodeName.split(";")[1]) ;
+        	int start = Integer.parseInt( nodeName.split(";")[1]) - (max / 2) ;
+        	int end = Integer.parseInt( nodeName.split(";")[1]) ;
         	listener.onReceiveMyTheaterRange(start, end);
         	
-        	myPrimary = Server.buildObject( zkmanager.getData(nodeName, new PrimaryWatcher() ) );
+        	myPrimary = Server.buildObject( zkmanager.getData(DATABASE_ZNODE_DIR + nodeName, new PrimaryWatcher() ) );
         	myPrimaryZnode = nodeName;
         	//contact primary and ask for stuff:
             try {
@@ -100,7 +100,7 @@ class DatabasePoolManager{
         	
         	//set the following node as my secondary:
             String secondary = getServerByStart(databases, end + 1);
-        	listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(secondary, new SecondaryWatcher() ) ));
+        	listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(DATABASE_ZNODE_DIR + secondary, new SecondaryWatcher() ) ));
         	
         }else {
         	//I'm the first node, taking everything for me and wait for a secondary:
@@ -261,7 +261,7 @@ class DatabasePoolManager{
 				int secondaryStart = Integer.parseInt( myZnode.split(";")[1] ) + 1;
 				try {
 					String newSecondary = getServerByStart(zkmanager.getChildren(DATABASE_ZNODE, null), secondaryStart);
-					listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(newSecondary, new SecondaryWatcher()) ));
+					listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(DATABASE_ZNODE_DIR + newSecondary, new SecondaryWatcher()) ));
 					
 					listener.updateSecondary();
 				} catch (RemoteException | KeeperException | InterruptedException e) {
@@ -275,8 +275,8 @@ class DatabasePoolManager{
     
     
 	public void setNewName(String newName) throws KeeperException, InterruptedException {
-        zkmanager.createEphemeral(newName, fetchMyServerData().getBytes() );
-		zkmanager.delete(myZnode);
+        zkmanager.createEphemeral(DATABASE_ZNODE_DIR + newName, fetchMyServerData().getBytes() );
+		zkmanager.delete(DATABASE_ZNODE_DIR + myZnode);
         Debugger.log("Criei o meu znode " + newName);
 	}
 	
@@ -288,6 +288,7 @@ class DatabasePoolManager{
 			if (primary.getTheaters() != null)
 				return true;
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
         return false;
 	}
