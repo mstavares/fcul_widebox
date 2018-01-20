@@ -80,7 +80,7 @@ public class ServerPoolManager{
     		if (Integer.parseInt(s) > max)
     			max = Integer.parseInt(s);
     	
-    	return max;
+    	return max + 1;
 	}
     
     
