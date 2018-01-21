@@ -103,17 +103,19 @@ class DatabasePoolManager{
         	listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(DATABASE_ZNODE_DIR + secondary, new SecondaryWatcher() ) ));
         	
         }else {
-        	//I'm the first node, taking everything for me and wait for a secondary:
+        	//I'm the first node, taking everything for me:
         	myZnode = 0 + ";" + ( dbp.getNumberOfTheaters() - 1 ) ;
-        	zkmanager.getChildren(DATABASE_ZNODE, new GetSecondaryWatcher() );
-        	databaseManager.setDatabase(null);
         	
-            //creating my nznode:
+            //creating my znode:
             String fullZnodeToCreate = DATABASE_ZNODE_DIR + myZnode;
             if (!zkmanager.exists(fullZnodeToCreate, null)) {
                 zkmanager.createEphemeral(fullZnodeToCreate, server.getBytes());
                 Debugger.log("Criei o meu znode " + fullZnodeToCreate);
             }
+            
+            //wait for a second server:
+        	zkmanager.getChildren(DATABASE_ZNODE, new GetSecondaryWatcher() );
+        	databaseManager.setDatabase(null);
         }
         
     }
@@ -142,7 +144,7 @@ class DatabasePoolManager{
     
     private String getServerByEnd(int end) {
 		try {
-			List<String> servers = zkmanager.getChildren(DATABASE_ZNODE, new PrimaryWatcher() );
+			List<String> servers = zkmanager.getChildren(DATABASE_ZNODE, null);
 			
 	    	String last = null, server = null;
 	    	int max = 0;
@@ -223,12 +225,24 @@ class DatabasePoolManager{
 			if (event.getType() == EventType.NodeCreated ) {
 				if (event.getPath() != myZnode) {
 					try {
+						//set the new node as secondary:
 						listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(event.getPath(), new SecondaryWatcher() ) ));
+						
+						//set the new node as primary: //TODO dois watches?
+						myPrimaryZnode = event.getPath();
+						myPrimary = Server.buildObject(	zkmanager.getData(event.getPath(), new PrimaryWatcher() ) );
+						return;
 					} catch (RemoteException | KeeperException | InterruptedException e) {
 						Debugger.log("Error setting secondary");
 						e.printStackTrace();
 					}
 				}
+			}
+			Debugger.log("Recreating get secondary watcher.");
+			try {
+				zkmanager.getChildren(DATABASE_ZNODE, new GetSecondaryWatcher() );
+			} catch (KeeperException | InterruptedException e) {
+				e.printStackTrace();
 			}
 		}
     }
@@ -240,6 +254,7 @@ class DatabasePoolManager{
 			Debugger.log("Primary Watcher event!");
 			if (event.getType() == EventType.NodeDeleted ) {
 				if (!isOnline(myPrimary)) {
+					Debugger.log("Primary is not online, taking over.");
 					try {
 						int start = Integer.parseInt(myPrimaryZnode.split(";")[0]);
 						int end = Integer.parseInt(myZnode.split(";")[1]);
@@ -255,7 +270,12 @@ class DatabasePoolManager{
 				}
 				
 				myPrimaryZnode = getServerByEnd(Integer.parseInt(myZnode.split(";")[1]) + 1);
-				myPrimary = new Server(myPrimaryZnode.split(";")[0], Integer.parseInt(myPrimaryZnode.split(";")[1]));
+			}
+			
+			try {
+				myPrimary = Server.buildObject(	zkmanager.getData(DATABASE_ZNODE_DIR + myPrimaryZnode, new PrimaryWatcher()) );
+			} catch (KeeperException | InterruptedException e) {
+				e.printStackTrace();
 			}
 		}
     }
@@ -274,10 +294,11 @@ class DatabasePoolManager{
 					
 					listener.updateSecondary();
 				} catch (RemoteException | KeeperException | InterruptedException e) {
-					Debugger.log("Error setting new follower");
+					Debugger.log("Error setting new backup server");
 					e.printStackTrace();
 				}
 			}
+			Debugger.log("WARNING: THIS SHOULDN'T BE HAPPENING");
 			//TODO é preciso recriar o watch se não for deleted event? shouldn't happen anyway
 		}
     }
@@ -298,7 +319,7 @@ class DatabasePoolManager{
 			if (primary.getTheaters() != null)
 				return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
         return false;
 	}

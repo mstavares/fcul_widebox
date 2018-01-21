@@ -100,6 +100,7 @@ class DatabaseSynchronizer implements DatabasePoolManagerListener {
 	@Override
 	public void updateSecondary() {
 		try {
+			Debugger.log("Updating backup server.");
 			wideBoxDatabase.updateEntries(databaseManager.fetchEntries(firstTheaterNumber, lastTheaterNumber));
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block

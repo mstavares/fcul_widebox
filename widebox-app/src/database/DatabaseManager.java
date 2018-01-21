@@ -108,7 +108,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	}
 
 	public synchronized void setDatabase(Map<Integer, Seat[][]> entries) {
-		if (entries == null)
+		if (entries == null) //TODO try to recover from file
 			database = fileManager.createEmptyDatabase();
 		else {
 			database = entries;	
@@ -117,6 +117,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	
 	
 	public synchronized void updateEntries(Map<Integer, Seat[][]> entries) {
+		Debugger.log("Receiving updated entries from my primary.");
 		Set<Integer> set = entries.keySet();
 		
 		for (Integer key: set) {

@@ -14,7 +14,7 @@ public class DatabaseMain {
 	public static void main(String[] args) throws IOException, ClassNotFoundException, KeeperException, InterruptedException {
 		
 		try {
-			if (args.length > 1)
+			if (args.length > 0)
 				Utilities.setPort( Integer.parseInt(args[0]) );
 			else
 				Utilities.setPort(1098);
