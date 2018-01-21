@@ -268,6 +268,13 @@ class DatabasePoolManager{
 					try {
 						int start = Integer.parseInt(myPrimaryZnode.split(";")[0]);
 						int end = Integer.parseInt(myZnode.split(";")[1]);
+						
+						if (start > end) {
+							int n = start;
+							start = end;
+							end = n;
+						}
+						
 						String newName = start + ";" + end;
 						setNewName(newName);
 						listener.onReceiveMyTheaterRange(start, end);
@@ -280,7 +287,16 @@ class DatabasePoolManager{
 				}
 				
 				myPrimaryZnode = getServerByEnd(Integer.parseInt(myZnode.split(";")[0]) - 1);
-				Debugger.log("my new primary: " + myPrimaryZnode);
+				if (!myPrimaryZnode.equals(myZnode)) {
+					Debugger.log("My new primary: " + myPrimaryZnode);
+				}else {
+					Debugger.log("There are no more servers. Setting up Watcher for new nodes.");
+					try {
+						zkmanager.getChildren(DATABASE_ZNODE, new GetSecondaryWatcher() );
+					} catch (KeeperException | InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 			
 			try {
@@ -305,12 +321,15 @@ class DatabasePoolManager{
 				int secondaryStart = Integer.parseInt( myZnode.split(";")[1] ) + 1;
 				try {
 					String newSecondary = getServerByStart(secondaryStart);
-					listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(DATABASE_ZNODE_DIR + newSecondary, new SecondaryWatcher()) ));
 					
-					listener.updateSecondary();
+					if (!newSecondary.equals(myZnode)) {
+						listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(DATABASE_ZNODE_DIR + newSecondary, new SecondaryWatcher()) ));
+						
+						listener.updateSecondary();
+					}
 				} catch (RemoteException | KeeperException | InterruptedException e) {
 					Debugger.log("Error setting new backup server");
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
 			}else {
 				Debugger.log("WARNING: THIS SHOULDN'T BE HAPPENING");
