@@ -68,6 +68,7 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 	
 	public void unbind() {
 		try {
+			databaseManager.terminate();
 			Registry registry = LocateRegistry.getRegistry(1098);
 			registry.unbind("WideBoxDatabase");
 		} catch (RemoteException | NotBoundException e) {

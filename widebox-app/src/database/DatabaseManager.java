@@ -134,5 +134,9 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 				
 		return entries;
 	}
+	
+	public void terminate() {
+		databaseSynchronizer.terminate();
+	}
 
 }

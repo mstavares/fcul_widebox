@@ -43,6 +43,7 @@ public class ServerPoolManager{
     	this.servers = servers;
     	instanceSelector = InstanceSelector.getInstance();
     	zkmanager = ZooKeeperManagerImpl.getInstace();
+    	zkmanager.newConnection();
     	try {
             initialize();
             initializeDBSearch();
@@ -247,6 +248,10 @@ public class ServerPoolManager{
 			Debugger.log("Added Database Server " + server.getIp() + " to Remote Objects Map");
 		}
 		return res;		
+	}
+
+	public void terminate() {
+		zkmanager.closeConnection();
 	}
 	
 	

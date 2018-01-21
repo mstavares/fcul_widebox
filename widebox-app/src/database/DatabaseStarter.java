@@ -7,6 +7,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
+import common.Debugger;
 import common.InstanceControl;
 import common.Utilities;
 
@@ -48,6 +49,7 @@ public class DatabaseStarter extends UnicastRemoteObject implements InstanceCont
 			//Retornar false em vez de lançar a excepção?
 			throw new RemoteException("Error starting Database Server Instance");
 		}
+		Debugger.log("Server successfuly started");
 		return true;
 	}
 
@@ -58,6 +60,7 @@ public class DatabaseStarter extends UnicastRemoteObject implements InstanceCont
 		this.serverInstance.unbind();
 		this.serverInstance = null;
 		this.online = false;
+		Debugger.log("Server successfuly stopped");
 		return true;
 	}
 

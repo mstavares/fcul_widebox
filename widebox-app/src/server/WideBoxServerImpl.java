@@ -216,6 +216,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 
 	public void unbind() {
 		try {
+			lifeguard.terminate();
 			Registry registry = LocateRegistry.getRegistry(1090);
 			registry.unbind("WideBoxServer");
 		} catch (RemoteException e) {

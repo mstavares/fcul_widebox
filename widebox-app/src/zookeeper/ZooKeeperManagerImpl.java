@@ -13,7 +13,7 @@ public class ZooKeeperManagerImpl implements ZooKeeperManager {
     private static ZooKeeper zkeeper;
 
     private ZooKeeperManagerImpl() {
-        initialize();
+        // initialize();
     }
     
 	private static class StaticHolder {
@@ -81,6 +81,18 @@ public class ZooKeeperManagerImpl implements ZooKeeperManager {
     @Override
     public void registerWatcher(Watcher watcher) throws KeeperException, InterruptedException {
         zkeeper.register(watcher);
+    }
+    
+    public void newConnection() {
+    	try {
+            InstanceManager instanceManager = InstanceManager.getInstance();
+            String zookeeperIpAddress = instanceManager.getServers(InstanceType.ZOOKEEPER).get(0).getIp();
+            zkConnection = new ZooKeeperConnection();
+            zkeeper = zkConnection.connect(zookeeperIpAddress);
+            Debugger.log("ZooKeeper connection initialized");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     /**

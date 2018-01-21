@@ -35,7 +35,7 @@ class DatabasePoolManager{
     DatabasePoolManager(DatabasePoolManagerListener listener, DatabaseManager databaseManager) {
     	this.databaseManager = databaseManager;
     	zkmanager = ZooKeeperManagerImpl.getInstace();
-    	
+    	zkmanager.newConnection();
         try {
             this.listener = listener;
             initialize();
@@ -357,6 +357,11 @@ class DatabasePoolManager{
 			//e.printStackTrace();
 		}
         return false;
+	}
+
+
+	public void terminate() {
+		zkmanager.closeConnection();		
 	}
 	
 }

@@ -107,4 +107,8 @@ class DatabaseSynchronizer implements DatabasePoolManagerListener {
 			e.printStackTrace();
 		}
 	}
+	
+	public void terminate() {
+		databasePoolManager.terminate();
+	}
 }

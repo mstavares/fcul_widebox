@@ -15,6 +15,7 @@ public interface ZooKeeperManager {
     List<String> getChildren(String path, Watcher watcher) throws KeeperException, InterruptedException;
     void registerWatcher(Watcher watcher) throws KeeperException, InterruptedException;
     void delete(String path) throws KeeperException, InterruptedException;
+    void newConnection();
     void closeConnection();
 
 }
