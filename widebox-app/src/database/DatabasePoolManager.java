@@ -221,29 +221,38 @@ class DatabasePoolManager{
     private class GetSecondaryWatcher implements Watcher{
 		@Override
 		public void process(WatchedEvent event) {
-			Debugger.log("Get Secondary Watcher event!");
-			if (event.getType() == EventType.NodeCreated ) {
+			Debugger.log("Get Secondary Watcher event!: " + event.getType());
+			if (event.getType() == EventType.NodeChildrenChanged ) {
 				if (event.getPath() != myZnode) {
 					try {
+						Debugger.log("INTO Get Secondary Watcher event!");
 						//set the new node as secondary:
 						listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(event.getPath(), new SecondaryWatcher() ) ));
 						
 						//set the new node as primary: //TODO dois watches?
 						myPrimaryZnode = event.getPath();
 						myPrimary = Server.buildObject(	zkmanager.getData(event.getPath(), new PrimaryWatcher() ) );
-						return;
 					} catch (RemoteException | KeeperException | InterruptedException e) {
 						Debugger.log("Error setting secondary");
 						e.printStackTrace();
 					}
+				}else{
+					Debugger.log("Recreating get secondary watcher. 1");
+					try {
+						zkmanager.getChildren(DATABASE_ZNODE, new GetSecondaryWatcher() );
+					} catch (KeeperException | InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}else {
+				Debugger.log("Recreating get secondary watcher. 2");
+				try {
+					zkmanager.getChildren(DATABASE_ZNODE, new GetSecondaryWatcher() );
+				} catch (KeeperException | InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
-			Debugger.log("Recreating get secondary watcher.");
-			try {
-				zkmanager.getChildren(DATABASE_ZNODE, new GetSecondaryWatcher() );
-			} catch (KeeperException | InterruptedException e) {
-				e.printStackTrace();
-			}
+
 		}
     }
     
@@ -269,7 +278,8 @@ class DatabasePoolManager{
 					listener.updateSecondary();
 				}
 				
-				myPrimaryZnode = getServerByEnd(Integer.parseInt(myZnode.split(";")[1]) + 1);
+				myPrimaryZnode = getServerByEnd(Integer.parseInt(myZnode.split(";")[0]) - 1);
+				Debugger.log("my new primary: " + myPrimaryZnode);
 			}
 			
 			try {
@@ -297,9 +307,10 @@ class DatabasePoolManager{
 					Debugger.log("Error setting new backup server");
 					e.printStackTrace();
 				}
+			}else {
+				Debugger.log("WARNING: THIS SHOULDN'T BE HAPPENING");
+				//TODO é preciso recriar o watch se não for deleted event? shouldn't happen anyway
 			}
-			Debugger.log("WARNING: THIS SHOULDN'T BE HAPPENING");
-			//TODO é preciso recriar o watch se não for deleted event? shouldn't happen anyway
 		}
     }
     
