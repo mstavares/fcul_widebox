@@ -225,13 +225,14 @@ class DatabasePoolManager{
 			if (event.getType() == EventType.NodeChildrenChanged ) {
 				if (event.getPath() != myZnode) {
 					try {
+						Thread.sleep(2000);
 						Debugger.log("INTO Get Secondary Watcher event!");
 						//set the new node as secondary:
-						listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(event.getPath(), new SecondaryWatcher() ) ));
+						listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(DATABASE_ZNODE_DIR + getServerByStart(Integer.parseInt(myZnode.split(";")[1]) +1), new SecondaryWatcher() ) ));
 						
 						//set the new node as primary: //TODO dois watches?
 						myPrimaryZnode = event.getPath();
-						myPrimary = Server.buildObject(	zkmanager.getData(event.getPath(), new PrimaryWatcher() ) );
+						myPrimary = Server.buildObject(	zkmanager.getData(DATABASE_ZNODE_DIR + getServerByStart(Integer.parseInt(myZnode.split(";")[1]) +1), new PrimaryWatcher() ) );
 					} catch (RemoteException | KeeperException | InterruptedException e) {
 						Debugger.log("Error setting secondary");
 						e.printStackTrace();
@@ -296,7 +297,11 @@ class DatabasePoolManager{
 		public void process(WatchedEvent event) {
 			Debugger.log("Secondary Watcher event!");
 			if (event.getType() == EventType.NodeDeleted ) {
-				//TODO maybe sleep enquanto o secundario recria o nó para evitar race conditions?
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
 				int secondaryStart = Integer.parseInt( myZnode.split(";")[1] ) + 1;
 				try {
 					String newSecondary = getServerByStart(secondaryStart);
