@@ -199,14 +199,13 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	public Seat[][] getTheaterInfo(int theaterId, int clientId) throws RemoteException, FullTheaterException, NotOwnerException{
 		Debugger.log("Got info request for theather " + theaterId + " from clientID " + clientId);
 		printServers();
-		if(!instanceSelector.getInstanceServingTheater(theaterId, InstanceType.APP).getIp().equals(Utilities.getOwnIp())) {
+		if(!instanceSelector.getInstanceServingTheater(theaterId, InstanceType.APP).equals(new Server(Utilities.getOwnIp(), Utilities.getPort()))) {
 			Debugger.log("Not responsible for this server");
 			throw new NotOwnerException("This server is not responsible for that theater");
 		}
 		Seat[][] seats = lifeguard.getDatabaseServing(theaterId).getTheatersInfo(theaterId);
 		if(!clientHasReservation(clientId)) {
 			synchronized(reservationMap) {
-				Debugger.log("In sync");
 				Place seat = pickFreeSeat(seats, theaterId);
 				if(!reserveSeat(theaterId, clientId, seat.getRow(), seat.getColumn())) {
 					Debugger.log("Seat was not reserved");

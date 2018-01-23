@@ -102,9 +102,9 @@ class DatabaseSynchronizer implements DatabasePoolManagerListener {
 		try {
 			Debugger.log("Updating backup server.");
 			wideBoxDatabase.updateEntries(databaseManager.fetchEntries(firstTheaterNumber, lastTheaterNumber));
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (RemoteException|NullPointerException e) {
+			Debugger.log("Error updating backup server.");
+			//e.printStackTrace();
 		}
 	}
 	

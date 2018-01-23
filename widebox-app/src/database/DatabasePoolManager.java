@@ -231,8 +231,8 @@ class DatabasePoolManager{
 						listener.backupServerIsAvailable(Server.buildObject( zkmanager.getData(DATABASE_ZNODE_DIR + getServerByStart(Integer.parseInt(myZnode.split(";")[1]) +1), new SecondaryWatcher() ) ));
 						
 						//set the new node as primary: //TODO dois watches?
-						myPrimaryZnode = event.getPath();
-						myPrimary = Server.buildObject(	zkmanager.getData(DATABASE_ZNODE_DIR + getServerByStart(Integer.parseInt(myZnode.split(";")[1]) +1), new PrimaryWatcher() ) );
+						myPrimaryZnode = getServerByStart(Integer.parseInt(myZnode.split(";")[1]) +1);
+						myPrimary = Server.buildObject(	zkmanager.getData(DATABASE_ZNODE_DIR + myPrimaryZnode, new PrimaryWatcher() ) );
 					} catch (RemoteException | KeeperException | InterruptedException e) {
 						Debugger.log("Error setting secondary");
 						e.printStackTrace();
@@ -270,9 +270,8 @@ class DatabasePoolManager{
 						int end = Integer.parseInt(myZnode.split(";")[1]);
 						
 						if (start > end) {
-							int n = start;
-							start = end;
-							end = n;
+							start = Integer.parseInt(myZnode.split(";")[0]);
+							end = Integer.parseInt(myPrimaryZnode.split(";")[1]);
 						}
 						
 						String newName = start + ";" + end;
