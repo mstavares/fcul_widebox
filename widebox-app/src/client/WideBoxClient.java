@@ -28,21 +28,24 @@ public class WideBoxClient {
 	public WideBoxClient(int clientId) throws RemoteException{
 		id = clientId;
 		servers = new HashMap<Server, WideBoxServer>();
-
-		try {
-			instanceSelector = InstanceSelector.getInstance();
-			Server initialServer = instanceSelector.getRandomInstance(INSTANCE_TYPE);
-			
-			Registry registry = LocateRegistry.getRegistry(initialServer.getIp(), initialServer.getPort() );
-			WideBoxServer wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
-			//TODO try again if it fails?
-			
-			servers.put(initialServer, wideBoxServer);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RemoteException("Error connecting to the server.");
+		
+		for (int i = 1; i < 10; i++) {
+			try {
+				instanceSelector = InstanceSelector.getInstance();
+				Server initialServer = instanceSelector.getRandomInstance(INSTANCE_TYPE);
+				
+				Registry registry = LocateRegistry.getRegistry(initialServer.getIp(), initialServer.getPort() );
+				WideBoxServer wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
+				
+				servers.put(initialServer, wideBoxServer);
+				break;
+			} catch (Exception e) {
+				Debugger.log("Error connecting to the server. Trying another one. (" + i + ")");
+			}
 		}
-
+		
+		if (servers.size() < 1)
+			throw new RemoteException("Error connecting to the server.");
 	}
 
 	public Map<String, Integer> getTheaters() throws RemoteException{
@@ -57,9 +60,21 @@ public class WideBoxClient {
 		} catch (NotOwnerException e) {
 			Debugger.log("Contacted wrong server, fetching list");
 			instanceSelector.updateInstances(INSTANCE_TYPE, currentReservation.getServerList() );
-			//TODO ciclo infinito? add timeouts?
-			//TODO tentar ligar a um novo servidor se falhar?
 			return getTheaterInfo(theaterId);
+		} catch (RemoteException e) {
+			servers.remove(instanceSelector.getInstanceServingTheater(theaterId, INSTANCE_TYPE));
+
+			for (int i = 1; i < 10; i++) {
+				try {
+					Debugger.log("Error connecting to the server, contacting another one. (" + i + ")");
+					WideBoxServer server = getRemote(instanceSelector.getRandomInstance(INSTANCE_TYPE));
+					instanceSelector.updateInstances(INSTANCE_TYPE, server.getServerList() );
+					return getTheaterInfo(theaterId);
+				}catch(RemoteException e2) {}
+
+			}
+			
+			throw new RemoteException("Error contacting the servers.");
 		}
 	}
 
@@ -71,9 +86,21 @@ public class WideBoxClient {
 		} catch (NotOwnerException e) {
 			Debugger.log("Contacted wrong server, fetching list");
 			instanceSelector.updateInstances(INSTANCE_TYPE, currentReservation.getServerList() );
-			//TODO ciclo infinito? add timeouts?
-			//TODO tentar ligar a um novo servidor se falhar?
 			return reserveSeat(theaterId, row, column);
+		} catch (RemoteException e) {
+			servers.remove(instanceSelector.getInstanceServingTheater(theaterId, INSTANCE_TYPE));
+
+			for (int i = 1; i < 10; i++) {
+				try {
+					Debugger.log("Error connecting to the server, contacting another one. (" + i + ")");
+					WideBoxServer server = getRemote(instanceSelector.getRandomInstance(INSTANCE_TYPE));
+					instanceSelector.updateInstances(INSTANCE_TYPE, server.getServerList() );
+					return reserveSeat(theaterId, row, column);
+				}catch(RemoteException e2) {}
+
+			}
+			
+			throw new RemoteException("Error contacting the servers.");
 		}
 	}
 
@@ -106,7 +133,7 @@ public class WideBoxClient {
 				wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
 				servers.put(s, wideBoxServer);
 			}catch(RemoteException | NotBoundException e){
-				e.printStackTrace();
+				//e.printStackTrace();
 				throw new RemoteException("Error connecting to the server.");
 			}
 
@@ -115,4 +142,25 @@ public class WideBoxClient {
 		return wideBoxServer;
 	}
 
+	
+	
+	private WideBoxServer getRemote(Server server) throws RemoteException{;
+		WideBoxServer wideBoxServer;
+		
+		if (servers.containsKey(server))
+			wideBoxServer = servers.get(server);
+		else{
+			try{
+				Registry registry = LocateRegistry.getRegistry(server.getIp(), server.getPort() );
+				wideBoxServer = (WideBoxServer) registry.lookup("WideBoxServer");
+				servers.put(server, wideBoxServer);
+			}catch(RemoteException | NotBoundException e){
+				//e.printStackTrace();
+				throw new RemoteException("Error connecting to the server.");
+			}
+
+		}
+		
+		return wideBoxServer;
+	}
 }
