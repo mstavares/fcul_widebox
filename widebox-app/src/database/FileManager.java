@@ -70,6 +70,8 @@ class FileManager {
 			Debugger.log("Deleted database.bak file.");
 		}
 		
+		existsDatabaseFolder();
+		
 		Debugger.log("Started writing database.bak file.");
 		FileOutputStream fos = new FileOutputStream(bakFile);
 		ObjectOutputStream oos = new ObjectOutputStream(fos);

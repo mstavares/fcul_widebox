@@ -19,7 +19,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	private DatabaseProperties properties;
 
 	/** This timeout is used to store the database in file */
-	//private TimeoutManager timeoutManager;
+	private TimeoutManager timeoutManager;
 
 	/** This object is used to save requests in memory and also in file */
 	private FileManager fileManager;
@@ -32,12 +32,11 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		loadTheaters();
 		
 		fileManager = new FileManager(properties);
-		//database = fileManager.restoreDatabase();
 		
 		databaseSynchronizer = new DatabaseSynchronizer(this);
 
-		//timeoutManager = new TimeoutManager(this, properties.getTimeoutValue());
-		//timeoutManager.runRepeatly();
+		timeoutManager = new TimeoutManager(this, properties.getTimeoutValue());
+		timeoutManager.runRepeatly();
 	}
 
 	private void loadTheaters() {
@@ -63,7 +62,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 		Seat seat = database.get(theaterId)[row][column];
 		if(seat.isFree()) {
 			//TODO stuff de TFD para tornar isto mais eficiente?
-			//try {
+			try {
 				boolean isReplicated = databaseSynchronizer.sendToBackupServer(theaterId, clientId, row, column);
 				if(isReplicated) {
 					Debugger.log("Entry replicated");
@@ -72,13 +71,14 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 				}
 				
 				//TODO if !isReplicated, verificar  se é do primario, not important for now, I guess
-				//fileManager.appendAcceptActionToLog(theaterId, clientId, row, column);
+				fileManager.appendAcceptActionToLog(theaterId, clientId, row, column);
 				seat.setOccupied(clientId);
 				Debugger.log("Seat accepted successfully");
 				return true;
-			/*} catch (IOException e) {
-				e.printStackTrace();
-			}*/
+			} catch (IOException e) {
+				Debugger.log("Error writing to long");
+				//e.printStackTrace();
+			}
 		} else {
 			Debugger.log("This seat is not free.");
 		}
@@ -88,15 +88,13 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 
 	@Override
 	public void timeout() {
-		/*
 		try {
-			writeDatabaseToFile();
+			fileManager.writeDatabaseToFile(database);
 			Debugger.log("A base de dados foi guardada com sucesso.");
 		} catch (IOException e) {
 			Debugger.log("Ocorreu um erro ao guardar a BD em ficheiro.");
 			e.printStackTrace();
 		}
-		*/
 	}
 	
 	
@@ -107,8 +105,15 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	}
 
 	public void setDatabase(Map<Integer, Seat[][]> entries) {
-		if (entries == null) //TODO try to recover from file
-			database = fileManager.createEmptyDatabase();
+		if (entries == null)
+			try {
+				Debugger.log("Restoring database from file.");
+				database = fileManager.restoreDatabase();
+			} catch (IOException e) {
+				Debugger.log("Error reading database file.");
+				Debugger.log("Creating empty database.");
+				database = fileManager.createEmptyDatabase();
+			}
 		else {
 			database = entries;	
 		}
