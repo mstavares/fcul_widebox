@@ -59,6 +59,38 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		public int getColumn() {
 			return this.column;
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + column;
+			result = prime * result + row;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Place other = (Place) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (column != other.column)
+				return false;
+			if (row != other.row)
+				return false;
+			return true;
+		}
+
+		private WideBoxServerImpl getOuterType() {
+			return WideBoxServerImpl.this;
+		}
 	}
 
 	private class Reservation {
@@ -83,6 +115,41 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		public TimeoutManager getTimeoutManager() {
 			return this.timeoutManager;
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + ((place == null) ? 0 : place.hashCode());
+			result = prime * result + theaterId;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Reservation other = (Reservation) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (place == null) {
+				if (other.place != null)
+					return false;
+			} else if (!place.equals(other.place))
+				return false;
+			if (theaterId != other.theaterId)
+				return false;
+			return true;
+		}
+
+		private WideBoxServerImpl getOuterType() {
+			return WideBoxServerImpl.this;
+		}
 	}
 
 
@@ -94,9 +161,16 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		registerService();
 		properties = new ServerProperties();
 		reservationMap = new HashMap<>();
-		/** """Cache""" the theather map for faster responde for getTheaters requests **/
-		theatherMap = lifeguard.getDatabaseServing(0).getTheaters(); //TODO make it search for a random instance
-		// lastFreeSeat = new int[theatherMap.size()];
+		
+		try {
+			/** """Cache""" the theather map for faster responde for getTheaters requests **/
+			theatherMap = lifeguard.getDatabaseServing(0).getTheaters(); //TODO make it search for a random instance
+			// lastFreeSeat = new int[theatherMap.size()];
+		}catch(NullPointerException e) {
+			Debugger.log("Error communicating with the DB, exiting.");
+			System.exit(-1);
+		}
+
 		
 		Debugger.log("Application server is ready");
 	}
@@ -131,12 +205,15 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 		}
 		Seat[][] seats = lifeguard.getDatabaseServing(theaterId).getTheatersInfo(theaterId);
 		if(!clientHasReservation(clientId)) {
-			Place seat = pickFreeSeat(seats, theaterId);
-			if(!reserveSeat(theaterId, clientId, seat.getRow(), seat.getColumn())) {
-				Debugger.log("Seat was not reserved");
-				throw new RemoteException("Error automatically reserving seat");
+			synchronized(reservationMap) {
+				Debugger.log("In sync");
+				Place seat = pickFreeSeat(seats, theaterId);
+				if(!reserveSeat(theaterId, clientId, seat.getRow(), seat.getColumn())) {
+					Debugger.log("Seat was not reserved");
+					throw new RemoteException("Error automatically reserving seat");
+				}
+				seats[seat.getRow()][seat.getColumn()].setSelf();
 			}
-			seats[seat.getRow()][seat.getColumn()].setSelf();
 		} else {
 			Reservation reservation = reservationMap.get(clientId);
 			seats[reservation.getPlace().getRow()][reservation.getPlace().getColumn()].setSelf();
@@ -192,7 +269,7 @@ public class WideBoxServerImpl extends UnicastRemoteObject implements WideBoxSer
 	private Place pickFreeSeat(Seat[][] seats, int theaterId) throws FullTheaterException {
 		for (int i = 0; i < seats.length; i++) {
 			for (int k = 0; k < seats[i].length; k++) {
-				if(seats[i][k].isFree())
+				if(seats[i][k].isFree() && !reservationMap.containsValue(new Reservation(theaterId, new Place(i, k), null)))
 					return new Place(i, k);
 			}
 		}
