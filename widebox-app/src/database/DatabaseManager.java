@@ -103,7 +103,6 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	public synchronized Map<Integer, Seat[][]> fetchEntries(int newEnd, String newSecondary) {
 		databaseSynchronizer.updateRange(newEnd - 1);
 		databaseSynchronizer.setNewSecondary(newSecondary);
-		//TODO I should give just what I used to take care of
 		return database;
 	}
 

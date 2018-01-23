@@ -74,7 +74,6 @@ public class InstanceManager {
 		for (int i = 0; i < size; i++) {
 			newServers.add( map.get(i + "") );
 		}
-		//TODO possiveis problemas por estar a criar novos objetos Server? might need to make equals and hashcore
 		//TODO fix this mess
 		
 		servers.put(instanceType, newServers);

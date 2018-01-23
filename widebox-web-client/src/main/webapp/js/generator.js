@@ -39,7 +39,7 @@ var clientsFailed = 0;
 function startGenerator(){
 	var numClients = document.getElementsByName("nClients")[0].value;
 	var numTheaters = document.getElementsByName("nTeathers")[0].value;
-	var confirm = document.getElementsByName("confirm")[0].value;
+	var confirm = document.querySelector('.confirm:checked').value;
 	
 	document.getElementById("startButton").disabled = true;
 	document.getElementById("stopButton").disabled = false;
