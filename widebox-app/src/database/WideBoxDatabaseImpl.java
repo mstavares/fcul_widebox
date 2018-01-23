@@ -55,7 +55,7 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 	*/
 	
 	@Override
-	public synchronized boolean acceptReservedSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
+	public boolean acceptReservedSeat(int theaterId, int clientId, int row, int column) throws RemoteException{
 		return databaseManager.acceptReservedSeat(theaterId, clientId, row, column);
 	}
 	
@@ -84,12 +84,12 @@ public class WideBoxDatabaseImpl extends UnicastRemoteObject implements WideBoxD
 	 * and cuts my database in half
 	 */
 	@Override
-	public synchronized Map<Integer, Seat[][]> fetchEntries(int newEnd, String newSecondary) throws RemoteException {
+	public Map<Integer, Seat[][]> fetchEntries(int newEnd, String newSecondary) throws RemoteException {
 		return databaseManager.fetchEntries(newEnd, newSecondary);
 	}
 
 	@Override
-	public synchronized void updateEntries(Map<Integer, Seat[][]> entries) throws RemoteException {
+	public void updateEntries(Map<Integer, Seat[][]> entries) throws RemoteException {
 		databaseManager.updateEntries(entries);
 	}
 

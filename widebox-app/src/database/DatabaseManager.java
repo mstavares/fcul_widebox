@@ -100,13 +100,13 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	}
 	
 	
-	public synchronized Map<Integer, Seat[][]> fetchEntries(int newEnd, String newSecondary) {
+	public Map<Integer, Seat[][]> fetchEntries(int newEnd, String newSecondary) {
 		databaseSynchronizer.updateRange(newEnd - 1);
 		databaseSynchronizer.setNewSecondary(newSecondary);
 		return database;
 	}
 
-	public synchronized void setDatabase(Map<Integer, Seat[][]> entries) {
+	public void setDatabase(Map<Integer, Seat[][]> entries) {
 		if (entries == null) //TODO try to recover from file
 			database = fileManager.createEmptyDatabase();
 		else {
@@ -115,7 +115,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	}
 	
 	
-	public synchronized void updateEntries(Map<Integer, Seat[][]> entries) {
+	public void updateEntries(Map<Integer, Seat[][]> entries) {
 		Debugger.log("Receiving updated entries from my primary.");
 		Set<Integer> set = entries.keySet();
 		
@@ -125,7 +125,7 @@ public class DatabaseManager implements TimeoutListener.Timeout {
 	}
 	
 	
-	public synchronized Map<Integer, Seat[][]> fetchEntries(int start, int end){
+	public Map<Integer, Seat[][]> fetchEntries(int start, int end){
 		Map<Integer, Seat[][]> entries = new HashMap<Integer, Seat[][]>();
 		
 		for (int i = start; i <= end; i++) 
